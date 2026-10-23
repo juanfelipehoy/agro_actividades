@@ -37,7 +37,7 @@ export class TypeOrmActividadResponsableRepository implements ActividadResponsab
 
   async findById(id: number): Promise<ActividadResponsableDomain | null> {
     const entity = await this.repository.findOne({
-      where: { id_actividad_responsable: id },
+      where: { id_responsable: id },
       relations: { actividad: true },
     });
     return entity ? this.toDomain(entity) : null;
@@ -48,16 +48,16 @@ export class TypeOrmActividadResponsableRepository implements ActividadResponsab
     data: ActividadResponsableUpdate,
   ): Promise<ActividadResponsableDomain | null> {
     const existing = await this.repository.findOneBy({
-      id_actividad_responsable: id,
+      id_responsable: id,
     });
     if (!existing) return null;
-    await this.repository.update({ id_actividad_responsable: id }, data);
+    await this.repository.update({ id_responsable: id }, data);
     return this.findById(id);
   }
 
   async delete(id: number): Promise<boolean> {
     const result = await this.repository.delete({
-      id_actividad_responsable: id,
+      id_responsable: id,
     });
     return Boolean(result.affected);
   }
@@ -67,6 +67,7 @@ export class TypeOrmActividadResponsableRepository implements ActividadResponsab
   ): Partial<ActividadResponsableOrmEntity> {
     return {
       id_actividad: props.id_actividad,
+      nombre_responsable: props.nombre_responsable,
       id_usuario: props.id_usuario,
       rol: props.rol,
       estado_asignacion: props.estado_asignacion,
@@ -77,8 +78,9 @@ export class TypeOrmActividadResponsableRepository implements ActividadResponsab
     entity: ActividadResponsableOrmEntity,
   ): ActividadResponsableDomain {
     return ActividadResponsableDomain.fromPersistence({
-      id_actividad_responsable: entity.id_actividad_responsable,
+      id_actividad_responsable: entity.id_responsable,
       id_actividad: entity.id_actividad,
+      nombre_responsable: entity.nombre_responsable,
       id_usuario: entity.id_usuario,
       rol: entity.rol,
       estado_asignacion: entity.estado_asignacion,

@@ -9,7 +9,7 @@ import {
 @Entity('actividades_responsables')
 export class ActividadResponsableOrmEntity {
   @PrimaryGeneratedColumn()
-  id_actividad_responsable!: number;
+  id_responsable!: number;
 
   @ManyToOne('ActividadOrmEntity', 'responsables', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_actividad' })
@@ -19,11 +19,14 @@ export class ActividadResponsableOrmEntity {
   id_actividad!: number;
 
   @Column()
-  id_usuario!: number;
+  nombre_responsable!: string;
 
   @Column({ nullable: true })
   rol?: string;
 
   @Column({ default: 'asignado' })
   estado_asignacion!: string;
+
+  @Column({ nullable: true })
+  id_usuario?: number;
 }

@@ -1,4 +1,4 @@
-import {
+﻿import {
   Body,
   Controller,
   Delete,
@@ -37,6 +37,13 @@ export class ActividadHistorialController {
     return results.map((r) => r.toPrimitives());
   }
 
+  @Get('actividad/:actividadId')
+  async findByActividad(
+    @Param('actividadId', ParseIntPipe) actividadId: number,
+  ) {
+    const results = await this.getUseCase.findByActividad(actividadId);
+    return results.map((result) => result.toPrimitives());
+  }
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     const result = await this.getUseCase.findById(id);

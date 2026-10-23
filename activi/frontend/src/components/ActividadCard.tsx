@@ -1,4 +1,4 @@
-import { Actividad } from '../services/api';
+﻿import { Actividad } from '../services/api';
 
 interface ActividadCardProps {
   actividad: Actividad;
@@ -6,99 +6,69 @@ interface ActividadCardProps {
   onDelete: (id: number) => void;
 }
 
+const estados = {
+  pendiente: 'bg-amber-50 text-amber-700 border-amber-200',
+  en_proceso: 'bg-blue-50 text-blue-700 border-blue-200',
+  completada: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  cancelada: 'bg-red-50 text-red-700 border-red-200',
+};
+
+const prioridades = {
+  alta: 'bg-red-50 text-red-700',
+  media: 'bg-amber-50 text-amber-700',
+  baja: 'bg-emerald-50 text-emerald-700',
+};
+
 const ActividadCard = ({ actividad, onEdit, onDelete }: ActividadCardProps) => {
-  const getEstadoConfig = (estado: string) => {
-    const configs = {
-      pendiente: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-400' },
-      en_proceso: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', dot: 'bg-blue-400' },
-      completada: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', dot: 'bg-emerald-400' },
-      cancelada: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', dot: 'bg-red-400' },
-    };
-    return configs[estado as keyof typeof configs] ?? configs.pendiente;
-  };
-
-  const getPrioridadConfig = (prioridad: string) => {
-    const configs = {
-      alta: { bg: 'bg-red-50', text: 'text-red-600', label: 'Alta' },
-      media: { bg: 'bg-amber-50', text: 'text-amber-600', label: 'Media' },
-      baja: { bg: 'bg-emerald-50', text: 'text-emerald-600', label: 'Baja' },
-    };
-    return configs[prioridad as keyof typeof configs] ?? configs.media;
-  };
-
-  const getTipoIcon = (tipo: string) => {
-    const icons = {
-      siembra: '🌱',
-      riego: '💧',
-      fertilizacion: '🧪',
-      cosecha: '🌾',
-      poda: '✂️',
-      plagas: '🐛',
-    };
-    return icons[tipo as keyof typeof icons] ?? icons.siembra;
-  };
-
-  const estadoConfig = getEstadoConfig(actividad.estado ?? 'pendiente');
-  const prioridadConfig = getPrioridadConfig(actividad.prioridad ?? 'media');
+  const estado = actividad.estado || 'pendiente';
+  const prioridad = actividad.prioridad || 'media';
 
   return (
-    <div className="group bg-white rounded-2xl border border-emerald-100/60 p-5 hover:shadow-lg hover:shadow-emerald-100/40 transition-all duration-300 hover:-translate-y-0.5">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
-            {getTipoIcon(actividad.tipo_actividad)}
+    <article className="rounded-2xl border border-emerald-100/60 bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-100/40">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 20V10m0 0c-2.7 0-5-1.5-6-4 3.5-.5 5.5.5 6 4Zm0 0c2.7 0 5-1.5 6-4-3.5-.5-5.5.5-6 4Z" />
+            </svg>
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-800 truncate">{actividad.titulo}</h3>
-            <p className="text-xs text-gray-400 mt-0.5">{actividad.tipo_actividad}</p>
+          <div className="min-w-0">
+            <h3 className="truncate font-semibold text-gray-800">{actividad.titulo}</h3>
+            <p className="mt-0.5 text-xs capitalize text-gray-500">{actividad.tipo_actividad.replace('_', ' ')}</p>
           </div>
         </div>
-        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${estadoConfig.bg} ${estadoConfig.text} border ${estadoConfig.border}`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${estadoConfig.dot}`}></span>
-          {actividad.estado?.replace('_', ' ')}
-        </div>
+        <span className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium ${estados[estado as keyof typeof estados] || estados.pendiente}`}>
+          {estado.replace('_', ' ')}
+        </span>
       </div>
 
-      {/* Description */}
-      {actividad.descripcion && (
-        <p className="text-sm text-gray-500 line-clamp-2 mb-4 leading-relaxed">{actividad.descripcion}</p>
+      {actividad.descripcion ? (
+        <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-gray-600">{actividad.descripcion}</p>
+      ) : (
+        <p className="mb-4 text-sm text-gray-400">Sin descripción</p>
       )}
 
-      {/* Meta */}
-      <div className="flex items-center gap-4 text-xs text-gray-400 mb-4">
-        <div className="flex items-center gap-1.5">
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          {actividad.fecha_programada ? new Date(actividad.fecha_programada).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : 'Sin fecha'}
-        </div>
-        <div className={`px-2 py-0.5 rounded-md text-[11px] font-medium ${prioridadConfig.bg} ${prioridadConfig.text}`}>
-          {prioridadConfig.label}
-        </div>
+      <div className="mb-4 flex items-center justify-between border-t border-gray-50 pt-3 text-xs text-gray-500">
+        <span>{actividad.fecha_programada ? new Date(actividad.fecha_programada).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Sin fecha programada'}</span>
+        <span className={`rounded-md px-2 py-1 font-medium ${prioridades[prioridad as keyof typeof prioridades] || prioridades.media}`}>
+          Prioridad {prioridad}
+        </span>
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-2 pt-3 border-t border-gray-50">
-        <button
-          onClick={() => onEdit(actividad)}
-          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-emerald-600 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition-colors"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
+      <div className="flex gap-2">
+        <button type="button" onClick={() => onEdit(actividad)} className="btn-secondary flex-1">
           Editar
         </button>
         <button
+          type="button"
           onClick={() => actividad.id_actividad !== undefined && onDelete(actividad.id_actividad)}
-          className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-red-500 bg-red-50 rounded-xl hover:bg-red-100 transition-colors"
+          className="rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-100"
+          aria-label={`Eliminar ${actividad.titulo}`}
         >
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
+          Eliminar
         </button>
       </div>
-    </div>
+    </article>
   );
 };
 

@@ -9,7 +9,7 @@ import {
 @Entity('actividades_servicios')
 export class ActividadServicioOrmEntity {
   @PrimaryGeneratedColumn()
-  id_actividad_servicio!: number;
+  id_servicio!: number;
 
   @ManyToOne('ActividadOrmEntity', 'servicios', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_actividad' })

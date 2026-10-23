@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+﻿import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -35,6 +35,15 @@ export class TypeOrmActividadEvidenciaRepository implements ActividadEvidenciaRe
     return entities.map((e) => this.toDomain(e));
   }
 
+  async findByActividad(
+    idActividad: number,
+  ): Promise<ActividadEvidenciaDomain[]> {
+    const entities = await this.repository.find({
+      where: { id_actividad: idActividad },
+      order: { fecha_registro: 'DESC' },
+    });
+    return entities.map((entity) => this.toDomain(entity));
+  }
   async findById(id: number): Promise<ActividadEvidenciaDomain | null> {
     const entity = await this.repository.findOne({
       where: { id_actividad_evidencia: id },

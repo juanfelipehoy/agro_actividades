@@ -1,7 +1,8 @@
 export interface ActividadResponsableProps {
   id_actividad_responsable?: number;
   id_actividad: number;
-  id_usuario: number;
+  nombre_responsable: string;
+  id_usuario?: number;
   rol?: string;
   estado_asignacion?: string;
 }

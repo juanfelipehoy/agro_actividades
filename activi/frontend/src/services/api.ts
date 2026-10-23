@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, AxiosError } from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -8,6 +8,45 @@ const api: AxiosInstance = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Interceptor de solicitud para limpiar campos vacíos
+api.interceptors.request.use(
+  (config) => {
+    if (config.data && typeof config.data === 'object') {
+      // Eliminar campos vacíos (string vacío, null, undefined)
+      const cleanedData = Object.keys(config.data).reduce((acc, key) => {
+        const value = config.data[key];
+        if (value !== '' && value !== null && value !== undefined) {
+          acc[key] = value;
+        }
+        return acc;
+      }, {} as Record<string, unknown>);
+      config.data = cleanedData;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
+
+// Interceptor de respuesta para manejar errores
+api.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError) => {
+    const message = (error.response?.data as { message?: string })?.message || error.message || 'Error desconocido';
+
+    console.error('Error de API:', {
+      url: error.config?.url,
+      status: error.response?.status,
+      message,
+      data: error.response?.data,
+    });
+
+    // Puedes agregar notificaciones toast aquí si deseas
+    // Por ahora solo logeamos el error
+
+    return Promise.reject(error);
+  },
+);
 
 // Interfaces
 export interface Actividad {

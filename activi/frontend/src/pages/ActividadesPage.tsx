@@ -1,7 +1,17 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { actividadesApi, Actividad } from '../services/api';
 import ActividadCard from '../components/ActividadCard';
 import ActividadForm from '../components/ActividadForm';
+
+const getRequestErrorMessage = (error: unknown, fallback: string) => {
+  if (axios.isAxiosError(error)) {
+    const details = error.response?.data?.message;
+    if (Array.isArray(details)) return details[0];
+    if (typeof details === 'string') return details;
+  }
+  return fallback;
+};
 
 const ActividadesPage = () => {
   const [actividades, setActividades] = useState<Actividad[]>([]);
@@ -35,7 +45,7 @@ const ActividadesPage = () => {
       setShowForm(false);
       loadActividades();
     } catch (err) {
-      setError('Error al crear actividad');
+      setError(getRequestErrorMessage(err, 'No se pudo crear la actividad. Revisa los campos obligatorios e inténtalo de nuevo.'));
       console.error('Error:', err);
     }
   };
@@ -47,7 +57,7 @@ const ActividadesPage = () => {
       setEditingActividad(null);
       loadActividades();
     } catch (err) {
-      setError('Error al actualizar actividad');
+      setError(getRequestErrorMessage(err, 'No se pudo actualizar la actividad. Revisa los datos e inténtalo de nuevo.'));
       console.error('Error:', err);
     }
   };
@@ -58,7 +68,7 @@ const ActividadesPage = () => {
         await actividadesApi.delete(id);
         loadActividades();
       } catch (err) {
-        setError('Error al eliminar actividad');
+        setError(getRequestErrorMessage(err, 'No se pudo eliminar la actividad. Inténtalo de nuevo.'));
         console.error('Error:', err);
       }
     }
@@ -101,10 +111,10 @@ const ActividadesPage = () => {
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label: 'Total', value: stats.total, color: 'from-emerald-500 to-green-600', icon: '📊' },
-          { label: 'Pendientes', value: stats.pendientes, color: 'from-amber-400 to-orange-500', icon: '⏳' },
-          { label: 'En Proceso', value: stats.enProceso, color: 'from-blue-400 to-blue-600', icon: '🔄' },
-          { label: 'Completadas', value: stats.completadas, color: 'from-emerald-400 to-teal-500', icon: '✅' },
+          { label: 'Total', value: stats.total, color: 'from-emerald-500 to-green-600' },
+          { label: 'Pendientes', value: stats.pendientes, color: 'from-amber-400 to-orange-500' },
+          { label: 'En Proceso', value: stats.enProceso, color: 'from-blue-400 to-blue-600' },
+          { label: 'Completadas', value: stats.completadas, color: 'from-emerald-400 to-teal-500' },
         ].map((stat) => (
           <div key={stat.label} className="bg-white rounded-2xl border border-emerald-100/60 p-4 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
@@ -112,8 +122,10 @@ const ActividadesPage = () => {
                 <p className="text-xs text-gray-400 font-medium">{stat.label}</p>
                 <p className="text-2xl font-bold text-gray-800 mt-1">{stat.value}</p>
               </div>
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-lg shadow-sm`}>
-                {stat.icon}
+              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-sm`}>
+                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
               </div>
             </div>
           </div>
@@ -126,7 +138,7 @@ const ActividadesPage = () => {
           <h1 className="text-2xl font-bold text-gray-800">Actividades</h1>
           <p className="text-sm text-gray-400 mt-0.5">Gestiona las actividades de tus cultivos</p>
         </div>
-        <button onClick={() => setShowForm(true)} className="btn-primary flex items-center gap-2">
+        <button onClick={() => { setError(null); setShowForm(true); }} className="btn-primary flex items-center gap-2">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
           </svg>

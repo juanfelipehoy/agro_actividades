@@ -1,4 +1,4 @@
-import {
+﻿import {
   ActividadHistorialDomain,
   ActividadHistorialProps,
 } from '../entities/actividad-historial.entity';
@@ -16,6 +16,7 @@ export interface ActividadHistorialRepositoryPort {
     historial: ActividadHistorialDomain,
   ): Promise<ActividadHistorialDomain>;
   findAll(): Promise<ActividadHistorialDomain[]>;
+  findByActividad(idActividad: number): Promise<ActividadHistorialDomain[]>;
   findById(id: number): Promise<ActividadHistorialDomain | null>;
   update(
     id: number,

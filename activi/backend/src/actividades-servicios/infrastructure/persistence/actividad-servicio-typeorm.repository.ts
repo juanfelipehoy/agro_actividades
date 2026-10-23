@@ -37,7 +37,7 @@ export class TypeOrmActividadServicioRepository implements ActividadServicioRepo
 
   async findById(id: number): Promise<ActividadServicioDomain | null> {
     const entity = await this.repository.findOne({
-      where: { id_actividad_servicio: id },
+      where: { id_servicio: id },
       relations: { actividad: true },
     });
     return entity ? this.toDomain(entity) : null;
@@ -48,15 +48,15 @@ export class TypeOrmActividadServicioRepository implements ActividadServicioRepo
     data: ActividadServicioUpdate,
   ): Promise<ActividadServicioDomain | null> {
     const existing = await this.repository.findOneBy({
-      id_actividad_servicio: id,
+      id_servicio: id,
     });
     if (!existing) return null;
-    await this.repository.update({ id_actividad_servicio: id }, data);
+    await this.repository.update({ id_servicio: id }, data);
     return this.findById(id);
   }
 
   async delete(id: number): Promise<boolean> {
-    const result = await this.repository.delete({ id_actividad_servicio: id });
+    const result = await this.repository.delete({ id_servicio: id });
     return Boolean(result.affected);
   }
 
@@ -76,7 +76,7 @@ export class TypeOrmActividadServicioRepository implements ActividadServicioRepo
     entity: ActividadServicioOrmEntity,
   ): ActividadServicioDomain {
     return ActividadServicioDomain.fromPersistence({
-      id_actividad_servicio: entity.id_actividad_servicio,
+      id_actividad_servicio: entity.id_servicio,
       id_actividad: entity.id_actividad,
       nombre_servicio: entity.nombre_servicio,
       descripcion: entity.descripcion,

@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { ActividadesModule } from './actividades/actividades.module';
 import { ActividadHistorialModule } from './actividad-historial/actividad-historial.module';
 import { ActividadesEvidenciasModule } from './actividades-evidencias/actividades-evidencias.module';
 import { ActividadesHerramientasModule } from './actividades-herramientas/actividades-herramientas.module';
 import { ActividadesResponsablesModule } from './actividades-responsables/actividades-responsables.module';
 import { ActividadesServiciosModule } from './actividades-servicios/actividades-servicios.module';
+import { AppController } from './common/controllers/app.controller';
 
 @Module({
   imports: [
@@ -14,6 +16,12 @@ import { ActividadesServiciosModule } from './actividades-servicios/actividades-
       isGlobal: true,
       envFilePath: '.env',
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 100,
+      },
+    ]),
     TypeOrmModule.forRootAsync({
       useFactory: () => ({
         type: 'postgres',
@@ -38,7 +46,7 @@ import { ActividadesServiciosModule } from './actividades-servicios/actividades-
     ActividadesResponsablesModule,
     ActividadesServiciosModule,
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [],
 })
 export class AppModule {}

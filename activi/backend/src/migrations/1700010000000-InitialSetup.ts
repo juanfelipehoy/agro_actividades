@@ -175,6 +175,21 @@ export class InitialSetup1700010000000 implements MigrationInterface {
           {
             name: 'cantidad',
             type: 'integer',
+            default: 1,
+          },
+          {
+            name: 'unidad_medida',
+            type: 'varchar',
+            isNullable: true,
+          },
+          {
+            name: 'estado_uso',
+            type: 'varchar',
+            isNullable: true,
+          },
+          {
+            name: 'observaciones',
+            type: 'text',
             isNullable: true,
           },
         ],
@@ -207,6 +222,16 @@ export class InitialSetup1700010000000 implements MigrationInterface {
             type: 'varchar',
             isNullable: true,
           },
+          {
+            name: 'estado_asignacion',
+            type: 'varchar',
+            default: "'asignado'",
+          },
+          {
+            name: 'id_usuario',
+            type: 'integer',
+            isNullable: true,
+          },
         ],
       }),
       true,
@@ -231,6 +256,18 @@ export class InitialSetup1700010000000 implements MigrationInterface {
             name: 'nombre_servicio',
             type: 'varchar',
             isNullable: false,
+          },
+          {
+            name: 'descripcion',
+            type: 'text',
+            isNullable: true,
+          },
+          {
+            name: 'costo',
+            type: 'decimal',
+            precision: 10,
+            scale: 2,
+            default: 0,
           },
           {
             name: 'proveedor',

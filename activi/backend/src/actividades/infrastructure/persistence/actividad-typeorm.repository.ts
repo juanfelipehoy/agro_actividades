@@ -28,13 +28,22 @@ export class TypeOrmActividadRepository implements ActividadRepositoryPort {
   }
 
   async findAll(): Promise<ActividadDomain[]> {
-    const actividades = await this.actividadesRepository.find();
+    const actividades = await this.actividadesRepository.find({
+      relations: ['historial'],
+    });
     return actividades.map((actividad) => this.toDomain(actividad));
   }
 
   async findById(id: number): Promise<ActividadDomain | null> {
-    const actividad = await this.actividadesRepository.findOneBy({
-      id_actividad: id,
+    const actividad = await this.actividadesRepository.findOne({
+      where: { id_actividad: id },
+      relations: [
+        'historial',
+        'responsables',
+        'evidencias',
+        'herramientas',
+        'servicios',
+      ],
     });
 
     return actividad ? this.toDomain(actividad) : null;
@@ -44,8 +53,8 @@ export class TypeOrmActividadRepository implements ActividadRepositoryPort {
     id: number,
     actividad: ActividadUpdate,
   ): Promise<ActividadDomain | null> {
-    const existing = await this.actividadesRepository.findOneBy({
-      id_actividad: id,
+    const existing = await this.actividadesRepository.findOne({
+      where: { id_actividad: id },
     });
 
     if (!existing) {

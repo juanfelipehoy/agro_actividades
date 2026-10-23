@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+﻿import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CreateActividadUseCase } from './application/use-cases/create-actividad.use-case';
 import { GetActividadUseCase } from './application/use-cases/get-actividad.use-case';
@@ -8,9 +8,13 @@ import { ActividadController } from './infrastructure/http/controllers/actividad
 import { ACTIVIDAD_REPOSITORY } from './domain/ports/actividad.repository.port';
 import { ActividadOrmEntity } from './infrastructure/persistence/actividad.orm-entity';
 import { TypeOrmActividadRepository } from './infrastructure/persistence/actividad-typeorm.repository';
+import { ActividadHistorialModule } from '../actividad-historial/actividad-historial.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ActividadOrmEntity])],
+  imports: [
+    TypeOrmModule.forFeature([ActividadOrmEntity]),
+    ActividadHistorialModule,
+  ],
   controllers: [ActividadController],
   providers: [
     CreateActividadUseCase,

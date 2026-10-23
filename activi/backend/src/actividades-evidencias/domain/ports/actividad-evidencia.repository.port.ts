@@ -1,4 +1,4 @@
-import {
+﻿import {
   ActividadEvidenciaDomain,
   ActividadEvidenciaProps,
 } from '../entities/actividad-evidencia.entity';
@@ -16,6 +16,7 @@ export interface ActividadEvidenciaRepositoryPort {
     evidencia: ActividadEvidenciaDomain,
   ): Promise<ActividadEvidenciaDomain>;
   findAll(): Promise<ActividadEvidenciaDomain[]>;
+  findByActividad(idActividad: number): Promise<ActividadEvidenciaDomain[]>;
   findById(id: number): Promise<ActividadEvidenciaDomain | null>;
   update(
     id: number,

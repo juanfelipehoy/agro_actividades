@@ -37,7 +37,7 @@ export class TypeOrmActividadHerramientaRepository implements ActividadHerramien
 
   async findById(id: number): Promise<ActividadHerramientaDomain | null> {
     const entity = await this.repository.findOne({
-      where: { id_actividad_herramienta: id },
+      where: { id_herramienta: id },
       relations: { actividad: true },
     });
     return entity ? this.toDomain(entity) : null;
@@ -48,16 +48,16 @@ export class TypeOrmActividadHerramientaRepository implements ActividadHerramien
     data: ActividadHerramientaUpdate,
   ): Promise<ActividadHerramientaDomain | null> {
     const existing = await this.repository.findOneBy({
-      id_actividad_herramienta: id,
+      id_herramienta: id,
     });
     if (!existing) return null;
-    await this.repository.update({ id_actividad_herramienta: id }, data);
+    await this.repository.update({ id_herramienta: id }, data);
     return this.findById(id);
   }
 
   async delete(id: number): Promise<boolean> {
     const result = await this.repository.delete({
-      id_actividad_herramienta: id,
+      id_herramienta: id,
     });
     return Boolean(result.affected);
   }
@@ -79,7 +79,7 @@ export class TypeOrmActividadHerramientaRepository implements ActividadHerramien
     entity: ActividadHerramientaOrmEntity,
   ): ActividadHerramientaDomain {
     return ActividadHerramientaDomain.fromPersistence({
-      id_actividad_herramienta: entity.id_actividad_herramienta,
+      id_actividad_herramienta: entity.id_herramienta,
       id_actividad: entity.id_actividad,
       nombre_herramienta: entity.nombre_herramienta,
       cantidad: entity.cantidad,

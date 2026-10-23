@@ -5,9 +5,13 @@ export class CreateActividadResponsableDto {
   @IsNotEmpty()
   id_actividad!: number;
 
-  @IsInt()
+  @IsString()
   @IsNotEmpty()
-  id_usuario!: number;
+  nombre_responsable!: string;
+
+  @IsInt()
+  @IsOptional()
+  id_usuario?: number;
 
   @IsString()
   @IsOptional()
