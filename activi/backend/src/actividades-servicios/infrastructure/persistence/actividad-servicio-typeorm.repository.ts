@@ -9,6 +9,11 @@ import type {
   ActividadServicioRepositoryPort,
   ActividadServicioUpdate,
 } from '../../domain/ports/actividad-servicio.repository.port';
+import type {
+  PaginatedResult,
+  PaginationParams,
+} from '../../../common/types/pagination';
+import { normalizePagination } from '../../../common/types/pagination';
 import { ActividadServicioOrmEntity } from './actividad-servicio.orm-entity';
 
 @Injectable()
@@ -28,11 +33,35 @@ export class TypeOrmActividadServicioRepository implements ActividadServicioRepo
     return this.toDomain(saved);
   }
 
-  async findAll(): Promise<ActividadServicioDomain[]> {
-    const entities = await this.repository.find({
+  async findAll(
+    params?: PaginationParams,
+  ): Promise<PaginatedResult<ActividadServicioDomain>> {
+    const { page, limit } = normalizePagination(params);
+
+    const [entities, total] = await this.repository.findAndCount({
       relations: { actividad: true },
+      order: { id_servicio: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
     });
-    return entities.map((e) => this.toDomain(e));
+
+    return {
+      data: entities.map((e) => this.toDomain(e)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async findByActividad(
+    idActividad: number,
+  ): Promise<ActividadServicioDomain[]> {
+    const entities = await this.repository.find({
+      where: { id_actividad: idActividad },
+      order: { id_servicio: 'ASC' },
+    });
+    return entities.map((entity) => this.toDomain(entity));
   }
 
   async findById(id: number): Promise<ActividadServicioDomain | null> {

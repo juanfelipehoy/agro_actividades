@@ -1,7 +1,7 @@
-import { Injectable, Scope } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as winston from 'winston';
 
-@Injectable({ scope: Scope.TRANSIENT })
+@Injectable()
 export class AppLogger {
   private logger: winston.Logger;
 

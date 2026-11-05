@@ -11,10 +11,8 @@ export interface ActividadProps {
   fecha_programada?: string;
   fecha_inicio?: string;
   fecha_fin?: string;
-  id_cultivo_real?: number;
   fecha_creacion?: Date;
   fecha_actualizacion?: Date;
-  cultivo_real?: unknown;
   responsables?: unknown[];
   evidencias?: unknown[];
   servicios?: unknown[];

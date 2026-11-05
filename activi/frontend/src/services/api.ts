@@ -4,12 +4,13 @@ export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const api: AxiosInstance = axios.create({
   baseURL: API_URL,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Interceptor de solicitud para limpiar campos vacíos
+// Interceptor de solicitud
 api.interceptors.request.use(
   (config) => {
     // Subida de archivos: FormData no se puede limpiar ni serializar a JSON.
@@ -26,15 +27,21 @@ api.interceptors.request.use(
     }
 
     if (config.data && typeof config.data === 'object') {
-      // Eliminar campos vacíos (string vacío, null, undefined)
-      const cleanedData = Object.keys(config.data).reduce((acc, key) => {
-        const value = config.data[key];
-        if (value !== '' && value !== null && value !== undefined) {
-          acc[key] = value;
-        }
-        return acc;
-      }, {} as Record<string, unknown>);
-      config.data = cleanedData;
+      const method = (config.method ?? 'get').toLowerCase();
+      const isUpdate = method === 'patch' || method === 'put';
+
+      config.data = Object.keys(config.data).reduce<Record<string, unknown>>(
+        (acc, key) => {
+          const value = config.data[key];
+          if (value === undefined) return acc;
+          // En creaciones los campos vacíos se omiten; en actualizaciones
+          // se envían como null para poder limpiar el valor en el servidor.
+          if (value === '' && !isUpdate) return acc;
+          acc[key] = value === '' ? null : value;
+          return acc;
+        },
+        {},
+      );
     }
     return config;
   },
@@ -48,8 +55,9 @@ api.interceptors.response.use(
     const responseData = error.response?.data as unknown;
     let message = error.message || 'Error desconocido';
 
-    // Extraer mensaje de error de diferentes formatos posibles
-    if (responseData) {
+    if (!error.response) {
+      message = 'No se pudo conectar con el servidor. Verifica que el backend esté activo.';
+    } else if (responseData) {
       if (typeof responseData === 'string') {
         message = responseData;
       } else if (typeof responseData === 'object') {
@@ -64,16 +72,6 @@ api.interceptors.response.use(
       }
     }
 
-    console.error('Error de API:', {
-      url: error.config?.url,
-      method: error.config?.method,
-      status: error.response?.status,
-      message,
-      data: error.response?.data,
-      requestData: error.config?.data,
-    });
-
-    // Retornar error con mensaje formateado
     return Promise.reject({
       ...error,
       response: {
@@ -85,6 +83,14 @@ api.interceptors.response.use(
 );
 
 // Interfaces
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export interface Actividad {
   id_actividad?: number;
   titulo: string;
@@ -95,7 +101,6 @@ export interface Actividad {
   fecha_programada?: string;
   fecha_inicio?: string;
   fecha_fin?: string;
-  id_cultivo_real?: number;
   fecha_creacion?: string;
   fecha_actualizacion?: string;
 }
@@ -129,22 +134,37 @@ export interface ActividadHerramienta {
 }
 
 export interface ActividadResponsable {
-  id_responsable?: number;
+  id_actividad_responsable?: number;
   id_actividad: number;
   nombre_responsable: string;
   rol?: string;
+  estado_asignacion?: string;
+  id_usuario?: number;
 }
 
 export interface ActividadServicio {
-  id_servicio?: number;
+  id_actividad_servicio?: number;
   id_actividad: number;
   nombre_servicio: string;
+  descripcion?: string;
+  costo?: number;
   proveedor?: string;
+}
+
+// Helpers de paginación
+const paginatedGet = <T>(path: string) =>
+  (page = 1, limit = 20) =>
+    api.get<PaginatedResponse<T>>(path, { params: { page, limit } });
+
+export interface EstadoCount {
+  estado: string;
+  total: number;
 }
 
 // Actividades
 export const actividadesApi = {
-  getAll: () => api.get<Actividad[]>('/actividades'),
+  getAll: paginatedGet<Actividad>('/actividades'),
+  getStats: () => api.get<EstadoCount[]>('/actividades/stats'),
   getById: (id: number) => api.get<Actividad>(`/actividades/${id}`),
   create: (data: Partial<Actividad>) => api.post<Actividad>('/actividades', data),
   update: (id: number, data: Partial<Actividad>) => api.patch<Actividad>(`/actividades/${id}`, data),
@@ -153,7 +173,7 @@ export const actividadesApi = {
 
 // Actividad Historial
 export const historialApi = {
-  getAll: () => api.get<ActividadHistorial[]>('/actividad-historial'),
+  getAll: paginatedGet<ActividadHistorial>('/actividad-historial'),
   getById: (id: number) => api.get<ActividadHistorial>(`/actividad-historial/${id}`),
   create: (data: Partial<ActividadHistorial>) => api.post<ActividadHistorial>('/actividad-historial', data),
   update: (id: number, data: Partial<ActividadHistorial>) => api.patch<ActividadHistorial>(`/actividad-historial/${id}`, data),
@@ -163,7 +183,7 @@ export const historialApi = {
 
 // Actividades Evidencias
 export const evidenciasApi = {
-  getAll: () => api.get<ActividadEvidencia[]>('/actividades-evidencias'),
+  getAll: paginatedGet<ActividadEvidencia>('/actividades-evidencias'),
   getById: (id: number) => api.get<ActividadEvidencia>(`/actividades-evidencias/${id}`),
   create: (data: Partial<ActividadEvidencia> | FormData) =>
     api.post<ActividadEvidencia>('/actividades-evidencias', data),
@@ -174,7 +194,7 @@ export const evidenciasApi = {
 
 // Actividades Herramientas
 export const herramientasApi = {
-  getAll: () => api.get<ActividadHerramienta[]>('/actividades-herramientas'),
+  getAll: paginatedGet<ActividadHerramienta>('/actividades-herramientas'),
   getById: (id: number) => api.get<ActividadHerramienta>(`/actividades-herramientas/${id}`),
   create: (data: Partial<ActividadHerramienta>) => api.post<ActividadHerramienta>('/actividades-herramientas', data),
   update: (id: number, data: Partial<ActividadHerramienta>) => api.patch<ActividadHerramienta>(`/actividades-herramientas/${id}`, data),
@@ -184,7 +204,7 @@ export const herramientasApi = {
 
 // Actividades Responsables
 export const responsablesApi = {
-  getAll: () => api.get<ActividadResponsable[]>('/actividades-responsables'),
+  getAll: paginatedGet<ActividadResponsable>('/actividades-responsables'),
   getById: (id: number) => api.get<ActividadResponsable>(`/actividades-responsables/${id}`),
   create: (data: Partial<ActividadResponsable>) => api.post<ActividadResponsable>('/actividades-responsables', data),
   update: (id: number, data: Partial<ActividadResponsable>) => api.patch<ActividadResponsable>(`/actividades-responsables/${id}`, data),
@@ -194,7 +214,7 @@ export const responsablesApi = {
 
 // Actividades Servicios
 export const serviciosApi = {
-  getAll: () => api.get<ActividadServicio[]>('/actividades-servicios'),
+  getAll: paginatedGet<ActividadServicio>('/actividades-servicios'),
   getById: (id: number) => api.get<ActividadServicio>(`/actividades-servicios/${id}`),
   create: (data: Partial<ActividadServicio>) => api.post<ActividadServicio>('/actividades-servicios', data),
   update: (id: number, data: Partial<ActividadServicio>) => api.patch<ActividadServicio>(`/actividades-servicios/${id}`, data),

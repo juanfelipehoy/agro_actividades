@@ -2,6 +2,10 @@
   ActividadHistorialDomain,
   ActividadHistorialProps,
 } from '../entities/actividad-historial.entity';
+import type {
+  PaginatedResult,
+  PaginationParams,
+} from '../../../common/types/pagination';
 
 export const ACTIVIDAD_HISTORIAL_REPOSITORY = Symbol(
   'ACTIVIDAD_HISTORIAL_REPOSITORY',
@@ -15,7 +19,9 @@ export interface ActividadHistorialRepositoryPort {
   create(
     historial: ActividadHistorialDomain,
   ): Promise<ActividadHistorialDomain>;
-  findAll(): Promise<ActividadHistorialDomain[]>;
+  findAll(
+    params?: PaginationParams,
+  ): Promise<PaginatedResult<ActividadHistorialDomain>>;
   findByActividad(idActividad: number): Promise<ActividadHistorialDomain[]>;
   findById(id: number): Promise<ActividadHistorialDomain | null>;
   update(

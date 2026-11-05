@@ -1,249 +1,169 @@
-# AGROSOFT - Sistema de Gestión Agrícola
+# AGROSOFT
 
-Sistema completo para la gestión de actividades agrícolas, desarrollado con arquitectura hexagonal en el backend y React con TypeScript en el frontend.
+Sistema de gestión agrícola con frontend en React y backend en NestJS + PostgreSQL.
 
-##  Pasos para Ejecutar el Proyecto
+## Estructura del proyecto
 
-### Requisitos Previos
-- Node.js >= 18.0.0
-- npm >= 9.0.0
-- **Docker Desktop** (requerido para PostgreSQL - debe estar ejecutándose)
-
----
-
-### Paso 1: Instalar Dependencias
-
-Instalar todas las dependencias del proyecto (raíz, backend y frontend):
-
-```bash
-npm run install:all
+```
+activi/
+├── backend/     # API REST - NestJS, TypeORM, PostgreSQL
+├── frontend/    # SPA - React, Vite, Tailwind CSS, TanStack Query
+└── docker-compose.yml  # Orquestación de PostgreSQL
 ```
 
-**Nota:** Si ya instalaste las dependencias anteriormente, puedes saltar este paso.
+## Requisitos
 
----
+- Node.js 20 o superior
+- Docker y Docker Compose (para la base de datos)
+- Git
 
-### Paso 2: Configurar Variables de Entorno
+## Inicio rápido
 
-**Backend:**
+### 1. Base de datos
+
+```bash
+docker-compose up -d
+```
+
+Esto levanta PostgreSQL 15 en el puerto `5433` (configurable con `DB_PORT`).
+
+### 2. Backend
+
 ```bash
 cd backend
-cp .env.example .env
+npm install
+cp .env.example .env   # ajustar credenciales si es necesario
+npm run start:dev
 ```
 
-El archivo `.env` ya está configurado con las credenciales por defecto:
-- DB_HOST=localhost
-- DB_PORT=5433
-- DB_USERNAME=backend_user
-- DB_PASSWORD=backend123
-- DB_DATABASE=db_agrosoft
+La API queda disponible en `http://localhost:3000` y la documentación Swagger en `http://localhost:3000/api/docs`.
 
-**Frontend:**
+Las migraciones de base de datos se ejecutan automáticamente al iniciar (`migrationsRun: true`).
+
+### 3. Frontend
+
 ```bash
 cd frontend
-cp .env.example .env
-```
-
-El archivo `.env` ya está configurado con:
-- VITE_API_URL=http://localhost:3000
-
-**Volver a la raíz:**
-```bash
-cd ..
-```
-
----
-
-### Paso 3: Iniciar Docker Desktop
-
-**MUY IMPORTANTE:** Antes de ejecutar el siguiente comando, asegúrate de que:
-
-1. **Docker Desktop esté abierto y corriendo** en tu computadora
-2. Espera a que Docker Desktop termine de iniciarse (verás el icono en la barra de tareas con estado "Running")
-
-En Windows, Docker Desktop debe estar iniciado completamente antes de ejecutar comandos de Docker.
-
----
-
-### Paso 4: Iniciar Base de Datos
-
-Desde la raíz del proyecto, ejecuta:
-
-```bash
-npm run docker:up
-```
-
-Esto iniciará PostgreSQL en el puerto 5433.
-
-**Para verificar que el contenedor está corriendo:**
-```bash
-docker ps
-```
-
-Deberías ver un contenedor llamado `agrosoft_postgres` con estado "Up".
-
-**Si ves un error como "Cannot connect to the Docker daemon":**
-- Cierra Docker Desktop y ábrelo nuevamente
-- Espera a que esté completamente iniciado
-- Intenta ejecutar `npm run docker:up` nuevamente
-
----
-
-### Paso 5: Iniciar el Proyecto
-
-Desde la raíz del proyecto, ejecuta:
-
-```bash
+npm install
 npm run dev
 ```
 
-Esto iniciará:
-- **Backend** en http://localhost:3000
-- **Frontend** en http://localhost:5173
+La aplicación queda en `http://localhost:5173`.
 
-Verás dos terminales abiertas simultáneamente, una para el backend y otra para el frontend.
+## Scripts útiles
 
----
+Desde la raíz:
 
-### Paso 6: Verificar Funcionamiento
-
-1. Abre tu navegador en http://localhost:5173
-2. Deberías ver la aplicación de AGROSOFT con el módulo de actividades
-3. Intenta crear una actividad para verificar la conexión con el backend
-
----
-
-## 🛑 Cómo Detener el Proyecto
-
-### Para detener el backend y frontend:
-- Presiona `Ctrl + C` en la terminal donde ejecutaste `npm run dev
-
-### Para detener la base de datos:
 ```bash
-npm run docker:down
+npm run backend:dev    # backend en modo desarrollo
+npm run frontend:dev   # frontend en modo desarrollo
+npm run dev            # ambos en paralelo (concurrently)
+npm run build          # compila backend y frontend
 ```
 
----
+En `backend/`:
 
-##  Instrucciones Adicionales
-
-### Ejecutar Proyectos por Separado
-
-Si prefieres ejecutar backend y frontend en terminales separadas:
-
-**Terminal 1 - Backend:**
 ```bash
-npm run dev:backend
+npm run lint           # ESLint con corrección automática
+npm test               # tests unitarios (Jest)
+npm run build          # compila a dist/
 ```
 
-**Terminal 2 - Frontend:**
+En `frontend/`:
+
 ```bash
-npm run dev:frontend
+npm run lint           # ESLint
+npm run build          # typecheck (tsc) + build de Vite
 ```
 
-### Scripts Disponibles
+## Variables de entorno
 
-| Script | Descripción |
-|--------|-------------|
-| `npm run install:all` | Instala todas las dependencias |
-| `npm run dev` | Inicia backend y frontend juntos |
-| `npm run dev:backend` | Inicia solo el backend |
-| `npm run dev:frontend` | Inicia solo el frontend |
-| `npm run docker:up` | Inicia PostgreSQL con Docker |
-| `npm run docker:down` | Detiene PostgreSQL con Docker |
-o simplemente vas e inicias docker manualmente y el sistema lo correra normalmente 
-| `npm run build` | Compila ambos proyectos |
-| `npm run lint` | Ejecuta ESLint en ambos proyectos |
+### Backend (`backend/.env`)
 
----
+| Variable | Descripción | Valor por defecto |
+|---|---|---|
+| `DB_HOST` | Host de PostgreSQL | `localhost` |
+| `DB_PORT` | Puerto de PostgreSQL | `5433` |
+| `DB_USERNAME` | Usuario de base de datos | `backend_user` |
+| `DB_PASSWORD` | Contraseña de base de datos | `backend123` |
+| `DB_DATABASE` | Nombre de la base de datos | `db_agrosoft` |
+| `PORT` | Puerto del servidor | `3000` |
+| `CORS_ORIGIN` | Orígenes permitidos (separados por coma) | `http://localhost:5173` |
+| `LOG_LEVEL` | Nivel de logs Winston | `info` |
 
-## Tecnologías
+### Frontend (`frontend/.env`)
+
+| Variable | Descripción |
+|---|---|
+| `VITE_API_URL` | URL base de la API (ej. `http://localhost:3000`) |
+
+## Arquitectura
 
 ### Backend
-- **NestJS** v11.0.1 - Framework de Node.js
-- **TypeScript** v5.7.3 - Tipado estático
-- **TypeORM** v0.3.20 - ORM para PostgreSQL
-- **PostgreSQL** v15 - Base de datos
-- **Arquitectura Hexagonal** - Separación de capas
+
+Arquitectura hexagonal por módulos. Cada módulo sigue la misma estructura:
+
+```
+src/<modulo>/
+├── domain/
+│   ├── entities/       # Entidades de dominio puras
+│   └── ports/          # Interfaces (puertos) del repositorio
+├── application/
+│   └── use-cases/      # Casos de uso (lógica de aplicación)
+└── infrastructure/
+    ├── http/           # Controllers y DTOs
+    └── persistence/    # Entidades TypeORM y repositorios
+```
+
+Módulos disponibles:
+
+- `actividades` - CRUD de actividades agrícolas, con historial automático y estadísticas por estado
+- `actividad-historial` - Registro de cambios (creación, edición, cambio de estado)
+- `actividades-evidencias` - Fotos, videos y documentos adjuntos (subida con validación de contenido)
+- `actividades-herramientas` - Herramientas usadas por actividad
+- `actividades-responsables` - Personas asignadas por actividad
+- `actividades-servicios` - Servicios contratados por actividad
+
+Características transversales:
+
+- Validación global de DTOs con `class-validator`
+- Filtro global de excepciones con formato de error consistente
+- Rate limiting global (100 req/min por IP) con `@nestjs/throttler`
+- Logs estructurados con Winston en `backend/logs/`
+- Paginación en todos los endpoints de listado (`?page=&limit=`)
+- Endpoint de salud en `GET /health` (verifica conexión a la base de datos)
+- Swagger/OpenAPI en `/api/docs`
+- Transacciones en creación/actualización de actividades + historial
 
 ### Frontend
-- **React** v19.2.8 - Biblioteca UI
-- **TypeScript** v7.0.2 - Tipado estático
-- **Vite** v8.3.0 - Build tool
-- **Tailwind CSS** v3.4.19 - Framework CSS
-- **React Router** v7.18.4 - Enrutamiento
 
----
+- React 19 + TypeScript + Vite
+- React Router para navegación
+- TanStack Query para fetching, caché e invalidación
+- Tailwind CSS para estilos
+- Cliente axios centralizado con interceptores de error y timeout
 
-##  Solución de Problemas
+## Base de datos
 
-### Docker no está ejecutándose
+- PostgreSQL 15
+- Migraciones con TypeORM en `backend/src/migrations/` (se ejecutan al arrancar)
+- Claves foráneas con `ON DELETE CASCADE` entre actividades y sus entidades hijas
+- Los archivos subidos se guardan en `backend/uploads/` y se eliminan del disco al borrar la evidencia o la actividad
 
-**Error típico:**
-```
-failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine
-```
+## Desarrollo
 
-**Solución:**
-1. Abre Docker Desktop en tu computadora
-2. Espera a que esté completamente iniciado (icono verde en la barra de tareas)
-3. Vuelve a ejecutar `npm run docker:up
-```
+### Flujo de trabajo recomendado
 
-**Solución:**
-1. Verifica que Docker Desktop esté ejecutándose
-2. Ejecuta `docker ps` para verificar que el contenedor esté activo
-3. Si el contenedor no está activo, ejecuta `npm run docker:up`
-4. Verifica que el puerto 5433 no esté en uso por otra aplicación
+1. `git checkout -b feature/nombre-de-la-mejora` desde `main`
+2. Hacer los cambios y verificar con `npm run lint`, `npm test` (backend) y `npm run build`
+3. Abrir un Pull Request hacia `main`
 
-### Puerto ya en uso
+### Convenciones
 
-**Error típico:**
-```
-EADDRINUSE: address already in use :::3000
-```
+- Backend: kebab-case para archivos, PascalCase para clases, snake_case para columnas de base de datos
+- Frontend: componentes en `src/components/`, páginas en `src/pages/`, hooks de datos en `src/hooks/`
+- No commitear archivos `.env` ni credenciales
 
-**Solución:**
-- Si el puerto 3000 está en uso, cambia `PORT` en `backend/.env`
-- Si el puerto 5173 está en uso, Vite automáticamente buscará otro puerto disponible
+## CI
 
-### Errores de TypeScript en el frontend
-
-**Solución:**
-- Ejecuta `cd frontend && npm run build` para ver errores específicos
-- Asegúrate de que todas las dependencias estén instaladas
-- Verifica que no haya errores de sintaxis en los archivos `.tsx`
-
----
-
-##  Estructura del Proyecto
-
-```
-agrosoft/
-├── backend/              # API RESTful con NestJS
-│   ├── src/
-│   │   ├── actividades/              # Módulo de actividades
-│   │   ├── actividad-historial/     # Módulo de historial
-│   │   ├── actividades-evidencias/  # Módulo de evidencias
-│   │   ├── actividades-herramientas/# Módulo de herramientas
-│   │   ├── actividades-responsables/# Módulo de responsables
-│   │   ├── actividades-servicios/   # Módulo de servicios
-│   │   └── migrations/              # Migraciones de TypeORM
-│   ├── docker-compose.yml
-│   └── package.json
-├── frontend/             # Aplicación React con TypeScript
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── layouts/
-│   │   └── services/
-│   └── package.json
-└── package.json          # Scripts para ejecutar todo el proyecto
-```
-
----
-
-##   Licencia
-
-Este proyecto es privado de juan y no está licenciado.
-
+El repositorio incluye GitHub Actions (`.github/workflows/ci.yml`) que ejecuta lint, tests y builds en cada push y pull request.

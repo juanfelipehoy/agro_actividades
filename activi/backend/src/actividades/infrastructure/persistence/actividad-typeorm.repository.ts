@@ -9,6 +9,11 @@ import type {
   ActividadRepositoryPort,
   ActividadUpdate,
 } from '../../domain/ports/actividad.repository.port';
+import type {
+  PaginatedResult,
+  PaginationParams,
+} from '../../../common/types/pagination';
+import { normalizePagination } from '../../../common/types/pagination';
 import { ActividadOrmEntity } from './actividad.orm-entity';
 
 @Injectable()
@@ -27,11 +32,25 @@ export class TypeOrmActividadRepository implements ActividadRepositoryPort {
     return withRelations ?? this.toDomain(saved);
   }
 
-  async findAll(): Promise<ActividadDomain[]> {
-    const actividades = await this.actividadesRepository.find({
+  async findAll(
+    params?: PaginationParams,
+  ): Promise<PaginatedResult<ActividadDomain>> {
+    const { page, limit } = normalizePagination(params);
+
+    const [actividades, total] = await this.actividadesRepository.findAndCount({
       relations: ['historial'],
+      order: { fecha_creacion: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
     });
-    return actividades.map((actividad) => this.toDomain(actividad));
+
+    return {
+      data: actividades.map((actividad) => this.toDomain(actividad)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findById(id: number): Promise<ActividadDomain | null> {
@@ -47,6 +66,20 @@ export class TypeOrmActividadRepository implements ActividadRepositoryPort {
     });
 
     return actividad ? this.toDomain(actividad) : null;
+  }
+
+  async countByEstado(): Promise<{ estado: string; total: number }[]> {
+    const rows = await this.actividadesRepository
+      .createQueryBuilder('actividad')
+      .select('actividad.estado', 'estado')
+      .addSelect('COUNT(*)', 'total')
+      .groupBy('actividad.estado')
+      .getRawMany<{ estado: string; total: string }>();
+
+    return rows.map((row) => ({
+      estado: row.estado,
+      total: Number(row.total),
+    }));
   }
 
   async update(
@@ -85,7 +118,6 @@ export class TypeOrmActividadRepository implements ActividadRepositoryPort {
       fecha_programada: actividad.fecha_programada,
       fecha_inicio: actividad.fecha_inicio,
       fecha_fin: actividad.fecha_fin,
-      id_cultivo_real: actividad.id_cultivo_real,
     };
   }
 
@@ -100,7 +132,6 @@ export class TypeOrmActividadRepository implements ActividadRepositoryPort {
       fecha_programada: actividad.fecha_programada,
       fecha_inicio: actividad.fecha_inicio,
       fecha_fin: actividad.fecha_fin,
-      id_cultivo_real: actividad.id_cultivo_real,
       fecha_creacion: actividad.fecha_creacion,
       fecha_actualizacion: actividad.fecha_actualizacion,
       responsables: actividad.responsables,

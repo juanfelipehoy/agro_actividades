@@ -2,6 +2,10 @@
 import { ActividadEvidenciaDomain } from '../../domain/entities/actividad-evidencia.entity';
 import { ACTIVIDAD_EVIDENCIA_REPOSITORY } from '../../domain/ports/actividad-evidencia.repository.port';
 import type { ActividadEvidenciaRepositoryPort } from '../../domain/ports/actividad-evidencia.repository.port';
+import type {
+  PaginatedResult,
+  PaginationParams,
+} from '../../../common/types/pagination';
 
 @Injectable()
 export class GetActividadEvidenciaUseCase {
@@ -10,8 +14,10 @@ export class GetActividadEvidenciaUseCase {
     private readonly repository: ActividadEvidenciaRepositoryPort,
   ) {}
 
-  findAll(): Promise<ActividadEvidenciaDomain[]> {
-    return this.repository.findAll();
+  findAll(
+    params?: PaginationParams,
+  ): Promise<PaginatedResult<ActividadEvidenciaDomain>> {
+    return this.repository.findAll(params);
   }
 
   findByActividad(idActividad: number): Promise<ActividadEvidenciaDomain[]> {

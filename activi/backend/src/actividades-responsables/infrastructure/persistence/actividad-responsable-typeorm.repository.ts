@@ -9,6 +9,11 @@ import type {
   ActividadResponsableRepositoryPort,
   ActividadResponsableUpdate,
 } from '../../domain/ports/actividad-responsable.repository.port';
+import type {
+  PaginatedResult,
+  PaginationParams,
+} from '../../../common/types/pagination';
+import { normalizePagination } from '../../../common/types/pagination';
 import { ActividadResponsableOrmEntity } from './actividad-responsable.orm-entity';
 
 @Injectable()
@@ -28,11 +33,35 @@ export class TypeOrmActividadResponsableRepository implements ActividadResponsab
     return this.toDomain(saved);
   }
 
-  async findAll(): Promise<ActividadResponsableDomain[]> {
-    const entities = await this.repository.find({
+  async findAll(
+    params?: PaginationParams,
+  ): Promise<PaginatedResult<ActividadResponsableDomain>> {
+    const { page, limit } = normalizePagination(params);
+
+    const [entities, total] = await this.repository.findAndCount({
       relations: { actividad: true },
+      order: { id_responsable: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
     });
-    return entities.map((e) => this.toDomain(e));
+
+    return {
+      data: entities.map((e) => this.toDomain(e)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async findByActividad(
+    idActividad: number,
+  ): Promise<ActividadResponsableDomain[]> {
+    const entities = await this.repository.find({
+      where: { id_actividad: idActividad },
+      order: { id_responsable: 'ASC' },
+    });
+    return entities.map((entity) => this.toDomain(entity));
   }
 
   async findById(id: number): Promise<ActividadResponsableDomain | null> {

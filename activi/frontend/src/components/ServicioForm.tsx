@@ -1,147 +1,126 @@
-import { FormEvent, useState } from 'react';
+import { useState } from 'react';
 import { ActividadServicio } from '../services/api';
+import ActividadSelect from './ActividadSelect';
 
 interface ServicioFormProps {
-  onSubmit: (data: Partial<ActividadServicio>) => Promise<void>;
+  initialData?: ActividadServicio;
+  onSubmit: (data: Partial<ActividadServicio>) => void;
   onCancel: () => void;
-  initialData?: Partial<ActividadServicio>;
 }
 
-const ServicioForm = ({
-  onSubmit,
-  onCancel,
-  initialData = {},
-}: ServicioFormProps) => {
-  const isEditing = Boolean(initialData.id_servicio);
-  const [submitting, setSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    id_actividad: initialData.id_actividad || '',
-    nombre_servicio: initialData.nombre_servicio || '',
-    proveedor: initialData.proveedor || '',
+const ServicioForm = ({ initialData, onSubmit, onCancel }: ServicioFormProps) => {
+  const [formData, setFormData] = useState<Partial<ActividadServicio>>({
+    id_actividad: initialData?.id_actividad,
+    nombre_servicio: initialData?.nombre_servicio || '',
+    descripcion: initialData?.descripcion || '',
+    costo: initialData?.costo,
+    proveedor: initialData?.proveedor || '',
   });
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!formData.nombre_servicio.trim() || formData.nombre_servicio.trim().length < 2) return;
-    if (!formData.id_actividad || Number(formData.id_actividad) < 1) return;
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.id_actividad || !formData.nombre_servicio) return;
+    onSubmit({
+      ...formData,
+      descripcion: formData.descripcion || null,
+      proveedor: formData.proveedor || null,
+    } as Partial<ActividadServicio>);
+  };
 
-    try {
-      setSubmitting(true);
-      const dataToSubmit = {
-        id_actividad: Number(formData.id_actividad),
-        nombre_servicio: formData.nombre_servicio.trim(),
-        proveedor: formData.proveedor.trim() || undefined,
-      };
-      await onSubmit(dataToSubmit);
-    } finally {
-      setSubmitting(false);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    if (name === 'id_actividad') {
+      setFormData((prev) => ({ ...prev, [name]: Number(value) }));
+    } else if (type === 'number') {
+      setFormData((prev) => ({ ...prev, [name]: value === '' ? undefined : Number(value) }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
-  const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
-    const { name, value } = event.target;
-    setFormData((current) => ({ ...current, [name]: value }));
-  };
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/40 p-4 backdrop-blur-sm sm:p-6"
-      role="presentation"
-      onClick={onCancel}
-    >
-      <form
-        className="mx-auto w-full max-w-lg rounded-2xl bg-white shadow-2xl"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="servicio-form-title"
-        onSubmit={handleSubmit}
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="flex items-start justify-between border-b border-emerald-50 px-6 py-5">
-          <div>
-            <h2 id="servicio-form-title" className="text-lg font-semibold text-gray-800">
-              {isEditing ? 'Editar servicio' : 'Nuevo servicio'}
-            </h2>
-            <p className="mt-1 text-sm text-gray-500">
-              {isEditing
-                ? 'Actualiza la información del servicio.'
-                : 'Registra un servicio contratado para la actividad.'}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={submitting}
-            className="rounded-lg px-2 py-1 text-xl leading-none text-gray-400 hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50"
-            aria-label="Cerrar formulario"
-          >
-            ×
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-lg font-bold text-gray-800">
+            {initialData ? 'Editar Servicio' : 'Nuevo Servicio'}
+          </h2>
+          <button onClick={onCancel} className="text-gray-400 hover:text-gray-600 transition-colors">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
-        <div className="space-y-5 p-6">
-          <div>
-            <label htmlFor="id_actividad" className="mb-1.5 block text-sm font-medium text-gray-700">
-              Actividad
-            </label>
-            <input
-              id="id_actividad"
-              name="id_actividad"
-              type="number"
-              min="1"
-              value={formData.id_actividad}
-              onChange={handleChange}
-              required
-              autoFocus
-              className="input-field"
-              placeholder="ID de la actividad"
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <ActividadSelect
+            value={formData.id_actividad ? String(formData.id_actividad) : ''}
+            onChange={(value) =>
+              setFormData((prev) => ({ ...prev, id_actividad: Number(value) }))
+            }
+          />
 
           <div>
-            <label htmlFor="nombre_servicio" className="mb-1.5 block text-sm font-medium text-gray-700">
-              Nombre del servicio
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del servicio *</label>
             <input
-              id="nombre_servicio"
+              type="text"
               name="nombre_servicio"
               value={formData.nombre_servicio}
               onChange={handleChange}
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+              placeholder="Ej: fumigación, fertilización"
               required
-              minLength={2}
-              maxLength={100}
-              className="input-field"
-              placeholder="Ej: Riego, Fumigación, Transporte, etc."
             />
           </div>
 
           <div>
-            <label htmlFor="proveedor" className="mb-1.5 block text-sm font-medium text-gray-700">
-              Proveedor <span className="font-normal text-gray-400">(opcional)</span>
-            </label>
-            <input
-              id="proveedor"
-              name="proveedor"
-              value={formData.proveedor}
+            <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+            <textarea
+              name="descripcion"
+              value={formData.descripcion || ''}
               onChange={handleChange}
-              maxLength={100}
-              className="input-field"
-              placeholder="Nombre del proveedor o empresa"
+              rows={2}
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all resize-none"
+              placeholder="Descripción del servicio"
             />
           </div>
-        </div>
 
-        <div className="flex gap-3 border-t border-emerald-50 p-6">
-          <button type="button" onClick={onCancel} disabled={submitting} className="btn-secondary flex-1 disabled:opacity-50">
-            Cancelar
-          </button>
-          <button type="submit" disabled={submitting} className="btn-primary flex-1 disabled:cursor-not-allowed disabled:opacity-60">
-            {submitting ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Crear servicio'}
-          </button>
-        </div>
-      </form>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Costo</label>
+            <input
+              type="number"
+              name="costo"
+              value={formData.costo ?? ''}
+              onChange={handleChange}
+              min="0"
+              step="0.01"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+              placeholder="0"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Proveedor</label>
+            <input
+              type="text"
+              name="proveedor"
+              value={formData.proveedor || ''}
+              onChange={handleChange}
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+              placeholder="Nombre del proveedor"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={onCancel} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-gray-600 font-medium hover:bg-gray-50 transition-colors">
+              Cancelar
+            </button>
+            <button type="submit" className="flex-1 py-2.5 btn-primary">
+              {initialData ? 'Actualizar' : 'Crear'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

@@ -7,10 +7,12 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   NotFoundException,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { PaginationQueryDto } from '../../../../common/dto/pagination-query.dto';
 import { CreateActividadUseCase } from '../../../application/use-cases/create-actividad.use-case';
 import { GetActividadUseCase } from '../../../application/use-cases/get-actividad.use-case';
 import { SaveActividadUseCase } from '../../../application/use-cases/save-actividad.use-case';
@@ -40,11 +42,21 @@ export class ActividadController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Obtener todas las actividades' })
-  @ApiResponse({ status: 200, description: 'Lista de actividades' })
-  async findAll() {
-    const actividades = await this.getActividadUseCase.findAll();
-    return actividades.map((actividad) => actividad.toPrimitives());
+  @ApiOperation({ summary: 'Obtener actividades paginadas' })
+  @ApiResponse({ status: 200, description: 'Lista paginada de actividades' })
+  async findAll(@Query() query: PaginationQueryDto) {
+    const result = await this.getActividadUseCase.findAll(query);
+    return {
+      ...result,
+      data: result.data.map((actividad) => actividad.toPrimitives()),
+    };
+  }
+
+  @Get('stats')
+  @ApiOperation({ summary: 'Contar actividades agrupadas por estado' })
+  @ApiResponse({ status: 200, description: 'Conteo por estado' })
+  async getStats() {
+    return this.getActividadUseCase.countByEstado();
   }
 
   @Get(':id')

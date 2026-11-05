@@ -1,18 +1,31 @@
-﻿import { NestFactory } from '@nestjs/core';
+import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-import { AppLogger } from './common/logger/logger.service';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { AppLogger } from './common/logger/logger.service';
+import { initializeTransactionalContext, StorageDriver } from 'typeorm-transactional';
+
+// Debe ejecutarse antes de crear la aplicación para que las
+// transacciones de typeorm-transactional funcionen correctamente.
+initializeTransactionalContext({
+  storageDriver: StorageDriver.ASYNC_LOCAL_STORAGE,
+});
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  const logger = new AppLogger();
+  const logger = app.get(AppLogger);
 
-  // Configurar CORS para permitir conexiones desde el frontend
+  // CORS: orígenes permitidos configurables por variable de entorno.
+  // CORS_ORIGIN admite una lista separada por comas. En desarrollo,
+  // si no está definida se permite el frontend local de Vite.
+  const corsOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
   app.enableCors({
-    origin: true, // Permitir todos los orígenes en desarrollo
+    origin: corsOrigins,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
@@ -31,16 +44,12 @@ async function bootstrap() {
     }),
   );
 
-  // Filtro global de excepciones
-  app.useGlobalFilters(new HttpExceptionFilter());
-
   // Configuración de Swagger
   const config = new DocumentBuilder()
     .setTitle('AGROSOFT API')
     .setDescription('Sistema de gestión agrícola - API RESTful')
     .setVersion('1.0')
     .addTag('actividades', 'Gestión de actividades agrícolas')
-    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

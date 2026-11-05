@@ -1,4 +1,4 @@
-﻿import {
+import {
   Body,
   Controller,
   Delete,
@@ -7,8 +7,10 @@
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   NotFoundException,
 } from '@nestjs/common';
+import { PaginationQueryDto } from '../../../../common/dto/pagination-query.dto';
 import { CreateActividadHistorialUseCase } from '../../../application/use-cases/create-actividad-historial.use-case';
 import { GetActividadHistorialUseCase } from '../../../application/use-cases/get-actividad-historial.use-case';
 import { SaveActividadHistorialUseCase } from '../../../application/use-cases/save-actividad-historial.use-case';
@@ -32,9 +34,12 @@ export class ActividadHistorialController {
   }
 
   @Get()
-  async findAll() {
-    const results = await this.getUseCase.findAll();
-    return results.map((r) => r.toPrimitives());
+  async findAll(@Query() query: PaginationQueryDto) {
+    const result = await this.getUseCase.findAll(query);
+    return {
+      ...result,
+      data: result.data.map((r) => r.toPrimitives()),
+    };
   }
 
   @Get('actividad/:actividadId')

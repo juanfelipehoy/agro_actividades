@@ -1,173 +1,126 @@
-import { FormEvent, useState } from 'react';
-
+import { useState } from 'react';
+import { ActividadEvidencia } from '../services/api';
+import ActividadSelect from './ActividadSelect';
 
 interface EvidenciaFormProps {
-  onSubmit: (data: FormData) => Promise<void>;
+  onSubmit: (data: FormData) => void;
   onCancel: () => void;
-  submitting: boolean;
+  submitting?: boolean;
 }
 
-const EvidenciaForm = ({
-  onSubmit,
-  onCancel,
-  submitting,
-}: EvidenciaFormProps) => {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+const EvidenciaForm = ({ onSubmit, onCancel, submitting = false }: EvidenciaFormProps) => {
+  const [formData, setFormData] = useState<Partial<ActividadEvidencia> & { file?: File }>({});
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!selectedFile) {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.id_actividad) return;
+    if (!formData.file) {
       alert('Por favor selecciona un archivo');
       return;
     }
-
-    const values = new FormData(event.currentTarget);
-    values.append('file', selectedFile);
-
-    try {
-      await onSubmit(values);
-      setSelectedFile(null);
-    } catch (error) {
-      console.error(error);
-    }
+    const submitData = new FormData();
+    submitData.append('id_actividad', String(formData.id_actividad));
+    submitData.append('tipo_evidencia', formData.tipo_evidencia || 'foto');
+    if (formData.descripcion) submitData.append('descripcion', formData.descripcion);
+    if (formData.observaciones) submitData.append('observaciones', formData.observaciones);
+    submitData.append('file', formData.file);
+    onSubmit(submitData);
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setSelectedFile(event.target.files[0]);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    if (name === 'file') {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      setFormData((prev) => ({ ...prev, file }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: name === 'id_actividad' ? Number(value) : value }));
     }
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/40 p-4 backdrop-blur-sm sm:p-6"
-      role="presentation"
-      onClick={onCancel}
-    >
-      <form
-        className="mx-auto w-full max-w-lg rounded-2xl bg-white shadow-2xl"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="evidencia-form-title"
-        onSubmit={handleSubmit}
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="flex items-start justify-between border-b border-emerald-50 px-6 py-5">
-          <div>
-            <h2 id="evidencia-form-title" className="text-lg font-semibold text-gray-800">
-              Nueva evidencia
-            </h2>
-            <p className="mt-1 text-sm text-gray-500">
-              Adjunta fotos o documentos de la actividad.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => { onCancel(); setSelectedFile(null); }}
-            disabled={submitting}
-            className="rounded-lg px-2 py-1 text-xl leading-none text-gray-400 hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50"
-            aria-label="Cerrar formulario"
-          >
-            ×
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-lg font-bold text-gray-800">Nueva Evidencia</h2>
+          <button onClick={onCancel} className="text-gray-400 hover:text-gray-600 transition-colors">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
-        <div className="space-y-5 p-6">
-          <div>
-            <label htmlFor="id_actividad" className="mb-1.5 block text-sm font-medium text-gray-700">
-              Actividad
-            </label>
-            <input
-              id="id_actividad"
-              name="id_actividad"
-              type="number"
-              min="1"
-              required
-              autoFocus
-              className="input-field"
-              placeholder="ID de la actividad"
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <ActividadSelect
+            value={formData.id_actividad ? String(formData.id_actividad) : ''}
+            onChange={(value) =>
+              setFormData((prev) => ({ ...prev, id_actividad: Number(value) }))
+            }
+          />
 
           <div>
-            <label htmlFor="tipo_evidencia" className="mb-1.5 block text-sm font-medium text-gray-700">
-              Tipo
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de evidencia *</label>
             <select
-              id="tipo_evidencia"
               name="tipo_evidencia"
+              value={formData.tipo_evidencia}
+              onChange={handleChange}
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
               required
-              className="select-field"
-              defaultValue="foto"
             >
+              <option value="">Seleccionar tipo</option>
               <option value="foto">Foto</option>
-              <option value="documento">Documento</option>
               <option value="video">Video</option>
+              <option value="documento">Documento</option>
               <option value="otro">Otro</option>
             </select>
           </div>
 
           <div>
-            <label htmlFor="archivo" className="mb-1.5 block text-sm font-medium text-gray-700">
-              Archivo
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Archivo *</label>
             <input
-              id="archivo"
               type="file"
-              onChange={handleFileChange}
+              name="file"
+              onChange={handleChange}
+              accept="image/*,video/*,.pdf,.doc,.docx"
+              className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
               required
-              className="input-field"
-              accept="image/*,.pdf,.doc,.docx,.mp4,.avi"
             />
-            {selectedFile && (
-              <p className="mt-1 text-xs text-gray-500">Archivo seleccionado: {selectedFile.name}</p>
-            )}
+            <p className="mt-1 text-xs text-gray-400">Máximo 10MB. Imágenes, videos, PDF y documentos.</p>
           </div>
 
           <div>
-            <label htmlFor="descripcion" className="mb-1.5 block text-sm font-medium text-gray-700">
-              Descripción <span className="font-normal text-gray-400">(opcional)</span>
-            </label>
-            <textarea
-              id="descripcion"
-              name="descripcion"
-              rows={3}
-              className="input-field resize-none"
-              placeholder="Descripción de la evidencia"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="observaciones" className="mb-1.5 block text-sm font-medium text-gray-700">
-              Observaciones <span className="font-normal text-gray-400">(opcional)</span>
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
             <input
-              id="observaciones"
-              name="observaciones"
-              className="input-field"
-              placeholder="Notas adicionales"
+              type="text"
+              name="descripcion"
+              value={formData.descripcion || ''}
+              onChange={handleChange}
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+              placeholder="Descripción breve"
             />
           </div>
-        </div>
 
-        <div className="flex gap-3 border-t border-emerald-50 p-6">
-          <button
-            type="button"
-            onClick={() => { onCancel(); setSelectedFile(null); }}
-            disabled={submitting}
-            className="btn-secondary flex-1 disabled:opacity-50"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="btn-primary flex-1 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {submitting ? 'Guardando...' : 'Crear evidencia'}
-          </button>
-        </div>
-      </form>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
+            <textarea
+              name="observaciones"
+              value={formData.observaciones || ''}
+              onChange={handleChange}
+              rows={2}
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all resize-none"
+              placeholder="Observaciones adicionales"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={onCancel} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-gray-600 font-medium hover:bg-gray-50 transition-colors">
+              Cancelar
+            </button>
+            <button type="submit" disabled={submitting} className="flex-1 py-2.5 btn-primary disabled:opacity-60 disabled:cursor-not-allowed">
+              {submitting ? 'Guardando...' : 'Guardar'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

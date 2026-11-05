@@ -7,8 +7,10 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   NotFoundException,
 } from '@nestjs/common';
+import { PaginationQueryDto } from '../../../../common/dto/pagination-query.dto';
 import { CreateActividadResponsableUseCase } from '../../../application/use-cases/create-actividad-responsable.use-case';
 import { GetActividadResponsableUseCase } from '../../../application/use-cases/get-actividad-responsable.use-case';
 import { SaveActividadResponsableUseCase } from '../../../application/use-cases/save-actividad-responsable.use-case';
@@ -32,9 +34,20 @@ export class ActividadesResponsablesController {
   }
 
   @Get()
-  async findAll() {
-    const results = await this.getUseCase.findAll();
-    return results.map((r) => r.toPrimitives());
+  async findAll(@Query() query: PaginationQueryDto) {
+    const result = await this.getUseCase.findAll(query);
+    return {
+      ...result,
+      data: result.data.map((r) => r.toPrimitives()),
+    };
+  }
+
+  @Get('actividad/:actividadId')
+  async findByActividad(
+    @Param('actividadId', ParseIntPipe) actividadId: number,
+  ) {
+    const results = await this.getUseCase.findByActividad(actividadId);
+    return results.map((result) => result.toPrimitives());
   }
 
   @Get(':id')

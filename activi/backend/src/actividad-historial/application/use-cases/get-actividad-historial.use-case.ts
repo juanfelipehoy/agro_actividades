@@ -2,6 +2,10 @@
 import { ActividadHistorialDomain } from '../../domain/entities/actividad-historial.entity';
 import { ACTIVIDAD_HISTORIAL_REPOSITORY } from '../../domain/ports/actividad-historial.repository.port';
 import type { ActividadHistorialRepositoryPort } from '../../domain/ports/actividad-historial.repository.port';
+import type {
+  PaginatedResult,
+  PaginationParams,
+} from '../../../common/types/pagination';
 
 @Injectable()
 export class GetActividadHistorialUseCase {
@@ -10,8 +14,10 @@ export class GetActividadHistorialUseCase {
     private readonly repository: ActividadHistorialRepositoryPort,
   ) {}
 
-  findAll(): Promise<ActividadHistorialDomain[]> {
-    return this.repository.findAll();
+  findAll(
+    params?: PaginationParams,
+  ): Promise<PaginatedResult<ActividadHistorialDomain>> {
+    return this.repository.findAll(params);
   }
 
   findByActividad(idActividad: number): Promise<ActividadHistorialDomain[]> {

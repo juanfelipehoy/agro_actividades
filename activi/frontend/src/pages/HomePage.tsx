@@ -1,90 +1,125 @@
 import { Link } from 'react-router-dom';
+import {
+  useActividades,
+  useActividadStats,
+} from '../hooks/useActividades';
+import { useHistorial } from '../hooks/useHistorial';
+import { useEvidencias } from '../hooks/useEvidencias';
+import { useHerramientas, useResponsables, useServicios } from '../hooks/useRecursos';
+import { getErrorMessage } from '../utils/errors';
 
 const HomePage = () => {
+  const { data: actividades, isError: errorActividades } = useActividades(1, 5);
+  const { data: stats } = useActividadStats();
+  const { data: historial, isError: errorHistorial } = useHistorial(1, 5);
+  const { data: evidencias, isError: errorEvidencias } = useEvidencias(1, 4);
+  const { data: herramientas, isError: errorHerramientas } = useHerramientas(1, 1);
+  const { data: responsables, isError: errorResponsables } = useResponsables(1, 1);
+  const { data: servicios, isError: errorServicios } = useServicios(1, 1);
+
+  const hayError =
+    errorActividades || errorHistorial || errorEvidencias ||
+    errorHerramientas || errorResponsables || errorServicios;
+
+  const conteo = (estado: string) =>
+    stats?.find((s) => s.estado === estado)?.total ?? 0;
+
+  const resumen = [
+    { label: 'Total actividades', value: actividades?.total ?? 0, color: 'bg-emerald-500' },
+    { label: 'Pendientes', value: conteo('pendiente'), color: 'bg-amber-400' },
+    { label: 'En proceso', value: conteo('en_proceso'), color: 'bg-blue-500' },
+    { label: 'Completadas', value: conteo('completada'), color: 'bg-teal-500' },
+    { label: 'Historial', value: historial?.total ?? 0, color: 'bg-violet-500' },
+    { label: 'Evidencias', value: evidencias?.total ?? 0, color: 'bg-pink-500' },
+    { label: 'Herramientas', value: herramientas?.total ?? 0, color: 'bg-orange-500' },
+    { label: 'Responsables', value: responsables?.total ?? 0, color: 'bg-cyan-500' },
+    { label: 'Servicios', value: servicios?.total ?? 0, color: 'bg-indigo-500' },
+  ];
+
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-2xl border border-emerald-100/60 p-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Bienvenido a AGROSOFT</h1>
-        <p className="text-gray-600 mb-6">Sistema de gestión agrícola integral</p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Link
-            to="/actividades"
-            className="p-6 bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl border border-emerald-100 hover:shadow-lg transition-all group"
-          >
-            <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">Actividades</h3>
-            <p className="text-sm text-gray-600">Gestiona todas las actividades de tu finca</p>
-          </Link>
-
-          <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100 opacity-60">
-            <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center mb-4">
-              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">Cultivos</h3>
-            <p className="text-sm text-gray-600">Próximamente</p>
-          </div>
-
-          <div className="p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-100 opacity-60">
-            <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center mb-4">
-              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">Lotes</h3>
-            <p className="text-sm text-gray-600">Próximamente</p>
-          </div>
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Panel de control</h1>
+          <p className="text-sm text-gray-400 mt-0.5">Resumen general de tu finca</p>
         </div>
+        <Link to="/actividades" className="btn-primary">
+          Ver actividades
+        </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl border border-emerald-100/60 p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
-              <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-800">6</p>
-              <p className="text-sm text-gray-500">Módulos Activos</p>
-            </div>
-          </div>
+      {hayError && (
+        <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+          {getErrorMessage(new Error('backend'), 'No se pudo conectar con el servidor. Verifica que el backend esté activo.')}
         </div>
+      )}
 
-        <div className="bg-white rounded-2xl border border-emerald-100/60 p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-              <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+      {/* Resumen */}
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
+        {resumen.map((item) => (
+          <div key={item.label} className="rounded-2xl border border-emerald-100/60 bg-white p-4">
+            <div className="flex items-center gap-2">
+              <span className={`h-2.5 w-2.5 rounded-full ${item.color}`} />
+              <p className="text-xs font-medium text-gray-400">{item.label}</p>
             </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-800">24/7</p>
-              <p className="text-sm text-gray-500">Disponibilidad</p>
-            </div>
+            <p className="mt-2 text-2xl font-bold text-gray-800">{item.value}</p>
           </div>
-        </div>
+        ))}
+      </div>
 
-        <div className="bg-white rounded-2xl border border-emerald-100/60 p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-              <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-800">100%</p>
-              <p className="text-sm text-gray-500">Seguro</p>
-            </div>
-          </div>
+      {/* Actividades recientes */}
+      <div className="rounded-2xl border border-emerald-100/60 bg-white">
+        <div className="flex items-center justify-between border-b border-emerald-50 px-6 py-4">
+          <h2 className="font-semibold text-gray-800">Actividades recientes</h2>
+          <Link to="/actividades" className="text-sm font-medium text-emerald-600 hover:text-emerald-700">
+            Ver todas
+          </Link>
         </div>
+        {(actividades?.data ?? []).length === 0 ? (
+          <p className="py-10 text-center text-sm text-gray-400">Aún no hay actividades registradas.</p>
+        ) : (
+          <ul className="divide-y divide-gray-50">
+            {(actividades?.data ?? []).map((actividad) => (
+              <li key={actividad.id_actividad} className="flex items-center justify-between px-6 py-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-800">{actividad.titulo}</p>
+                  <p className="text-xs text-gray-400">
+                    {actividad.tipo_actividad.replace('_', ' ')}
+                    {actividad.fecha_programada && ` · ${actividad.fecha_programada}`}
+                  </p>
+                </div>
+                <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+                  {actividad.estado?.replace('_', ' ') ?? 'sin estado'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Últimos movimientos */}
+      <div className="rounded-2xl border border-emerald-100/60 bg-white">
+        <div className="border-b border-emerald-50 px-6 py-4">
+          <h2 className="font-semibold text-gray-800">Últimos movimientos</h2>
+        </div>
+        {(historial?.data ?? []).length === 0 ? (
+          <p className="py-10 text-center text-sm text-gray-400">Sin movimientos registrados.</p>
+        ) : (
+          <ul className="divide-y divide-gray-50">
+            {(historial?.data ?? []).map((item) => (
+              <li key={item.id_actividad_historial} className="flex items-center justify-between px-6 py-3">
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">{item.accion.replace('_', ' ')}</span>
+                  {' '}en actividad #{item.id_actividad}
+                </p>
+                <span className="text-xs text-gray-400">
+                  {item.fecha_registro ? new Date(item.fecha_registro).toLocaleDateString('es-ES') : ''}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

@@ -2,6 +2,10 @@ import {
   ActividadHerramientaDomain,
   ActividadHerramientaProps,
 } from '../entities/actividad-herramienta.entity';
+import type {
+  PaginatedResult,
+  PaginationParams,
+} from '../../../common/types/pagination';
 
 export const ACTIVIDAD_HERRAMIENTA_REPOSITORY = Symbol(
   'ACTIVIDAD_HERRAMIENTA_REPOSITORY',
@@ -15,7 +19,10 @@ export interface ActividadHerramientaRepositoryPort {
   create(
     herramienta: ActividadHerramientaDomain,
   ): Promise<ActividadHerramientaDomain>;
-  findAll(): Promise<ActividadHerramientaDomain[]>;
+  findAll(
+    params?: PaginationParams,
+  ): Promise<PaginatedResult<ActividadHerramientaDomain>>;
+  findByActividad(idActividad: number): Promise<ActividadHerramientaDomain[]>;
   findById(id: number): Promise<ActividadHerramientaDomain | null>;
   update(
     id: number,

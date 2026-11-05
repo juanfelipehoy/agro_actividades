@@ -7,8 +7,10 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   NotFoundException,
 } from '@nestjs/common';
+import { PaginationQueryDto } from '../../../../common/dto/pagination-query.dto';
 import { CreateActividadServicioUseCase } from '../../../application/use-cases/create-actividad-servicio.use-case';
 import { GetActividadServicioUseCase } from '../../../application/use-cases/get-actividad-servicio.use-case';
 import { SaveActividadServicioUseCase } from '../../../application/use-cases/save-actividad-servicio.use-case';
@@ -32,9 +34,20 @@ export class ActividadesServiciosController {
   }
 
   @Get()
-  async findAll() {
-    const results = await this.getUseCase.findAll();
-    return results.map((r) => r.toPrimitives());
+  async findAll(@Query() query: PaginationQueryDto) {
+    const result = await this.getUseCase.findAll(query);
+    return {
+      ...result,
+      data: result.data.map((r) => r.toPrimitives()),
+    };
+  }
+
+  @Get('actividad/:actividadId')
+  async findByActividad(
+    @Param('actividadId', ParseIntPipe) actividadId: number,
+  ) {
+    const results = await this.getUseCase.findByActividad(actividadId);
+    return results.map((result) => result.toPrimitives());
   }
 
   @Get(':id')

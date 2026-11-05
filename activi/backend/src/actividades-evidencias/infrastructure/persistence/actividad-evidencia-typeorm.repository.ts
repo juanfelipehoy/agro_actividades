@@ -1,4 +1,4 @@
-﻿import { Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -9,6 +9,11 @@ import type {
   ActividadEvidenciaRepositoryPort,
   ActividadEvidenciaUpdate,
 } from '../../domain/ports/actividad-evidencia.repository.port';
+import type {
+  PaginatedResult,
+  PaginationParams,
+} from '../../../common/types/pagination';
+import { normalizePagination } from '../../../common/types/pagination';
 import { ActividadEvidenciaOrmEntity } from './actividad-evidencia.orm-entity';
 
 @Injectable()
@@ -28,11 +33,25 @@ export class TypeOrmActividadEvidenciaRepository implements ActividadEvidenciaRe
     return this.toDomain(saved);
   }
 
-  async findAll(): Promise<ActividadEvidenciaDomain[]> {
-    const entities = await this.repository.find({
+  async findAll(
+    params?: PaginationParams,
+  ): Promise<PaginatedResult<ActividadEvidenciaDomain>> {
+    const { page, limit } = normalizePagination(params);
+
+    const [entities, total] = await this.repository.findAndCount({
       relations: { actividad: true },
+      order: { fecha_registro: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
     });
-    return entities.map((e) => this.toDomain(e));
+
+    return {
+      data: entities.map((e) => this.toDomain(e)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findByActividad(

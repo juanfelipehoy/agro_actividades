@@ -1,11 +1,10 @@
 import {
+  IsDateString,
   IsEnum,
-  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
   Length,
-  Min,
 } from 'class-validator';
 import {
   ActividadEstado,
@@ -37,20 +36,24 @@ export class CreateActividadDto {
   @IsOptional()
   prioridad?: ActividadPrioridad;
 
-  @IsString()
+  @IsDateString(
+    {},
+    { message: 'La fecha programada debe tener formato ISO (YYYY-MM-DD)' },
+  )
   @IsOptional()
   fecha_programada?: string;
 
-  @IsString()
+  @IsDateString(
+    {},
+    { message: 'La fecha de inicio debe tener formato ISO (YYYY-MM-DD)' },
+  )
   @IsOptional()
   fecha_inicio?: string;
 
-  @IsString()
+  @IsDateString(
+    {},
+    { message: 'La fecha de fin debe tener formato ISO (YYYY-MM-DD)' },
+  )
   @IsOptional()
   fecha_fin?: string;
-
-  @IsInt()
-  @Min(1, { message: 'ID de cultivo debe ser positivo' })
-  @IsOptional()
-  id_cultivo_real?: number;
 }

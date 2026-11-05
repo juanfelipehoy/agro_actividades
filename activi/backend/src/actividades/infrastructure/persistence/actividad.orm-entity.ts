@@ -36,9 +36,6 @@ export class ActividadOrmEntity {
   @Column({ type: 'date', nullable: true })
   fecha_fin?: string;
 
-  @Column({ nullable: true })
-  id_cultivo_real?: number;
-
   @CreateDateColumn()
   fecha_creacion!: Date;
 

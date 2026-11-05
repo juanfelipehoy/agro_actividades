@@ -1,60 +1,60 @@
-﻿import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import EvidenciaForm from '../components/EvidenciaForm';
-import { evidenciasApi, ActividadEvidencia, API_URL } from '../services/api';
+import Pagination from '../components/Pagination';
+import { API_URL } from '../services/api';
+import { useEvidencias, useCrearEvidencia, useEliminarEvidencia } from '../hooks/useEvidencias';
+import { getErrorMessage } from '../utils/errors';
+
+const TIPOS_EVIDENCIA: Record<string, string> = {
+  foto: 'Foto',
+  video: 'Video',
+  documento: 'Documento',
+  otro: 'Otro',
+};
 
 const EvidenciasPage = () => {
-  const [evidencias, setEvidencias] = useState<ActividadEvidencia[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
   const [showForm, setShowForm] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const loadEvidencias = async () => {
-    try {
-      setLoading(true);
-      const response = await evidenciasApi.getAll();
-      setEvidencias(response.data);
-      setError(null);
-    } catch (requestError) {
-      setError('Error al cargar evidencias.');
-      console.error(requestError);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data, isLoading, isError } = useEvidencias(page, 12);
+  const crearEvidencia = useCrearEvidencia();
+  const eliminarEvidencia = useEliminarEvidencia();
 
-  useEffect(() => {
-    void loadEvidencias();
-  }, []);
+  const evidencias = data?.data ?? [];
 
   const handleCreate = async (formData: FormData) => {
     try {
-      setSubmitting(true);
-      await evidenciasApi.create(formData);
+      await crearEvidencia.mutateAsync(formData);
       setShowForm(false);
-      await loadEvidencias();
+      setError(null);
     } catch (requestError) {
-      setError('No se pudo crear la evidencia.');
-      console.error(requestError);
-    } finally {
-      setSubmitting(false);
+      setError(getErrorMessage(requestError, 'No se pudo crear la evidencia. Verifica el archivo y los datos.'));
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('¿Estás seguro de eliminar esta evidencia?')) {
-      try {
-        await evidenciasApi.delete(id);
-        await loadEvidencias();
-      } catch (requestError) {
-        setError('No se pudo eliminar la evidencia.');
-        console.error(requestError);
-      }
+    if (!window.confirm('¿Estás seguro de eliminar esta evidencia? El archivo también se eliminará permanentemente.')) {
+      return;
+    }
+    try {
+      await eliminarEvidencia.mutateAsync(id);
+      setError(null);
+      if (evidencias.length === 1 && page > 1) setPage(page - 1);
+    } catch (requestError) {
+      setError(getErrorMessage(requestError, 'No se pudo eliminar la evidencia. Inténtalo de nuevo.'));
     }
   };
 
-  if (loading) {
-    return <div className="flex h-80 items-center justify-center text-sm text-gray-400">Cargando evidencias...</div>;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-80">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-3 border-emerald-200 border-t-emerald-500 rounded-full animate-spin"></div>
+          <p className="text-sm text-gray-400 font-medium">Cargando evidencias...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -62,16 +62,26 @@ const EvidenciasPage = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Evidencias</h1>
-          <p className="mt-0.5 text-sm text-gray-400">Fotos y documentos de las actividades</p>
+          <p className="mt-0.5 text-sm text-gray-400">Fotos, videos y documentos de las actividades</p>
         </div>
-        <button onClick={() => setShowForm(true)} className="btn-primary">Nueva evidencia</button>
+        <button onClick={() => { setError(null); setShowForm(true); }} className="btn-primary">Nueva evidencia</button>
       </div>
 
-      {error && <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>}
+      {(error || isError) && (
+        <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+          {error ?? 'Error al cargar las evidencias'}
+        </div>
+      )}
 
       {evidencias.length === 0 ? (
-        <div className="rounded-2xl border border-emerald-100/60 bg-white py-16 text-center text-sm text-gray-400">
-          Aún no hay evidencias registradas.
+        <div className="rounded-2xl border border-emerald-100/60 bg-white py-16 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-700 mb-1">Sin evidencias</h3>
+          <p className="text-sm text-gray-400">Aún no hay evidencias registradas.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -90,7 +100,7 @@ const EvidenciasPage = () => {
                   <img src={`${API_URL}${evidencia.archivo_url}`} alt={evidencia.descripcion || 'Evidencia de actividad'} className="aspect-video w-full object-cover" />
                 ) : (
                   <div className="flex aspect-video items-center justify-center bg-emerald-50 text-sm font-medium text-emerald-700">
-                    Abrir {evidencia.tipo_evidencia}
+                    Abrir {TIPOS_EVIDENCIA[evidencia.tipo_evidencia] ?? evidencia.tipo_evidencia}
                   </div>
                 )}
               </a>
@@ -115,11 +125,18 @@ const EvidenciasPage = () => {
         </div>
       )}
 
+      <Pagination
+        page={page}
+        totalPages={data?.totalPages ?? 0}
+        total={data?.total ?? 0}
+        onPageChange={setPage}
+      />
+
       {showForm && (
         <EvidenciaForm
           onSubmit={handleCreate}
           onCancel={() => setShowForm(false)}
-          submitting={submitting}
+          submitting={crearEvidencia.isPending}
         />
       )}
     </div>

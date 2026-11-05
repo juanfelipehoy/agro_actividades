@@ -1,4 +1,4 @@
-﻿import { Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -9,6 +9,11 @@ import type {
   ActividadHistorialRepositoryPort,
   ActividadHistorialUpdate,
 } from '../../domain/ports/actividad-historial.repository.port';
+import type {
+  PaginatedResult,
+  PaginationParams,
+} from '../../../common/types/pagination';
+import { normalizePagination } from '../../../common/types/pagination';
 import { ActividadHistorialOrmEntity } from './actividad-historial.orm-entity';
 
 @Injectable()
@@ -28,11 +33,25 @@ export class TypeOrmActividadHistorialRepository implements ActividadHistorialRe
     return this.toDomain(saved);
   }
 
-  async findAll(): Promise<ActividadHistorialDomain[]> {
-    const entities = await this.repository.find({
+  async findAll(
+    params?: PaginationParams,
+  ): Promise<PaginatedResult<ActividadHistorialDomain>> {
+    const { page, limit } = normalizePagination(params);
+
+    const [entities, total] = await this.repository.findAndCount({
       relations: { actividad: true },
+      order: { fecha_registro: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
     });
-    return entities.map((e) => this.toDomain(e));
+
+    return {
+      data: entities.map((e) => this.toDomain(e)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findByActividad(

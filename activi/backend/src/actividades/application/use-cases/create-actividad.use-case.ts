@@ -1,4 +1,5 @@
 ﻿import { Inject, Injectable } from '@nestjs/common';
+import { runInTransaction } from 'typeorm-transactional';
 import {
   ActividadDomain,
   ActividadProps,
@@ -18,15 +19,16 @@ export class CreateActividadUseCase {
     private readonly historialRepository: ActividadHistorialRepositoryPort,
   ) {}
 
-  async execute(data: ActividadProps): Promise<ActividadDomain> {
-    const actividad = await this.actividadRepository.create(
-      ActividadDomain.create(data),
-    );
-    const props = actividad.toPrimitives();
+  execute(data: ActividadProps): Promise<ActividadDomain> {
+    // Actividad e historial se crean en la misma transacción:
+    // si el historial falla, la actividad tampoco queda guardada.
+    return runInTransaction(async () => {
+      const actividad = await this.actividadRepository.create(
+        ActividadDomain.create(data),
+      );
+      const props = actividad.toPrimitives();
 
-    // Crear historial de forma asíncrona sin bloquear
-    this.historialRepository
-      .create(
+      await this.historialRepository.create(
         ActividadHistorialDomain.create({
           id_actividad: props.id_actividad!,
           accion: 'creacion',
@@ -34,11 +36,9 @@ export class CreateActividadUseCase {
           id_usuario: 1,
           observaciones: `Actividad creada: ${props.titulo}`,
         }),
-      )
-      .catch((error) => {
-        console.error('Error al crear historial:', error);
-      });
+      );
 
-    return actividad;
+      return actividad;
+    });
   }
 }
