@@ -1,4 +1,10 @@
-import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateActividadHerramientaDto {
   @IsInt()
@@ -7,21 +13,10 @@ export class CreateActividadHerramientaDto {
 
   @IsString()
   @IsNotEmpty()
+  @MaxLength(100)
   nombre_herramienta!: string;
 
   @IsInt()
   @IsOptional()
   cantidad?: number;
-
-  @IsString()
-  @IsOptional()
-  unidad_medida?: string;
-
-  @IsString()
-  @IsOptional()
-  estado_uso?: string;
-
-  @IsString()
-  @IsOptional()
-  observaciones?: string;
 }

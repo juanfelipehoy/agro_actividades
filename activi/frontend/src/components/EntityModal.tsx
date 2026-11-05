@@ -15,7 +15,9 @@ const EntityModal = ({ title, children, onClose, onSubmit, submitting }: EntityM
         <h2 id="entity-modal-title" className="text-lg font-semibold text-gray-800">{title}</h2>
         <button type="button" onClick={onClose} className="rounded-xl p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-600" aria-label="Cerrar">×</button>
       </div>
-      <div className="space-y-4 p-6">{children}</div>
+      <div className="space-y-4 p-6">
+        <>{children}</>
+      </div>
       <div className="flex gap-3 border-t border-emerald-50 p-4 sm:p-6">
         <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancelar</button>
         <button type="submit" disabled={submitting} className="btn-primary flex-1 disabled:cursor-not-allowed disabled:opacity-60">{submitting ? 'Guardando...' : 'Guardar'}</button>

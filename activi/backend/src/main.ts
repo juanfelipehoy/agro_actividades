@@ -4,9 +4,10 @@ import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { AppLogger } from './common/logger/logger.service';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const logger = new AppLogger();
 
   // Configurar CORS para permitir conexiones desde el frontend
@@ -14,6 +15,11 @@ async function bootstrap() {
     origin: true, // Permitir todos los orígenes en desarrollo
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
+  });
+
+  // Servir archivos estáticos de la carpeta uploads
+  app.useStaticAssets('uploads', {
+    prefix: '/uploads',
   });
 
   // Validación global de DTOs

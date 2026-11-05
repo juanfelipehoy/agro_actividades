@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const api: AxiosInstance = axios.create({
   baseURL: API_URL,
@@ -12,6 +12,19 @@ const api: AxiosInstance = axios.create({
 // Interceptor de solicitud para limpiar campos vacíos
 api.interceptors.request.use(
   (config) => {
+    // Subida de archivos: FormData no se puede limpiar ni serializar a JSON.
+    // Se elimina el Content-Type por defecto (application/json) para que el
+    // navegador defina el boundary correcto de multipart/form-data.
+    if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+      config.data.forEach((value, key) => {
+        if (value === '' || value === null || value === undefined) {
+          config.data.delete(key);
+        }
+      });
+      config.headers.delete('Content-Type');
+      return config;
+    }
+
     if (config.data && typeof config.data === 'object') {
       // Eliminar campos vacíos (string vacío, null, undefined)
       const cleanedData = Object.keys(config.data).reduce((acc, key) => {
@@ -32,19 +45,42 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    const message = (error.response?.data as { message?: string })?.message || error.message || 'Error desconocido';
+    const responseData = error.response?.data as unknown;
+    let message = error.message || 'Error desconocido';
+
+    // Extraer mensaje de error de diferentes formatos posibles
+    if (responseData) {
+      if (typeof responseData === 'string') {
+        message = responseData;
+      } else if (typeof responseData === 'object') {
+        const data = responseData as Record<string, unknown>;
+        if (Array.isArray(data.message)) {
+          message = String(data.message[0]);
+        } else if (typeof data.message === 'string') {
+          message = data.message;
+        } else if (typeof data.error === 'string') {
+          message = data.error;
+        }
+      }
+    }
 
     console.error('Error de API:', {
       url: error.config?.url,
+      method: error.config?.method,
       status: error.response?.status,
       message,
       data: error.response?.data,
+      requestData: error.config?.data,
     });
 
-    // Puedes agregar notificaciones toast aquí si deseas
-    // Por ahora solo logeamos el error
-
-    return Promise.reject(error);
+    // Retornar error con mensaje formateado
+    return Promise.reject({
+      ...error,
+      response: {
+        ...error.response,
+        data: { message },
+      },
+    });
   },
 );
 
@@ -86,7 +122,7 @@ export interface ActividadEvidencia {
 }
 
 export interface ActividadHerramienta {
-  id_herramienta?: number;
+  id_actividad_herramienta?: number;
   id_actividad: number;
   nombre_herramienta: string;
   cantidad?: number;
@@ -129,7 +165,8 @@ export const historialApi = {
 export const evidenciasApi = {
   getAll: () => api.get<ActividadEvidencia[]>('/actividades-evidencias'),
   getById: (id: number) => api.get<ActividadEvidencia>(`/actividades-evidencias/${id}`),
-  create: (data: Partial<ActividadEvidencia>) => api.post<ActividadEvidencia>('/actividades-evidencias', data),
+  create: (data: Partial<ActividadEvidencia> | FormData) =>
+    api.post<ActividadEvidencia>('/actividades-evidencias', data),
   update: (id: number, data: Partial<ActividadEvidencia>) => api.patch<ActividadEvidencia>(`/actividades-evidencias/${id}`, data),
   delete: (id: number) => api.delete(`/actividades-evidencias/${id}`),
   getByActividad: (actividadId: number) => api.get<ActividadEvidencia[]>(`/actividades-evidencias/actividad/${actividadId}`),

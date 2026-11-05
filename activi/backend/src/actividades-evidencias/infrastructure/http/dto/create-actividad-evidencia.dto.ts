@@ -1,6 +1,10 @@
+import { Type } from 'class-transformer';
 import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateActividadEvidenciaDto {
+  // En multipart/form-data todos los campos llegan como string,
+  // por lo que se convierte a number antes de validar (@IsInt).
+  @Type(() => Number)
   @IsInt()
   @IsNotEmpty()
   id_actividad!: number;
@@ -10,8 +14,8 @@ export class CreateActividadEvidenciaDto {
   tipo_evidencia!: string;
 
   @IsString()
-  @IsNotEmpty()
-  archivo_url!: string;
+  @IsOptional()
+  archivo_url?: string;
 
   @IsString()
   @IsOptional()

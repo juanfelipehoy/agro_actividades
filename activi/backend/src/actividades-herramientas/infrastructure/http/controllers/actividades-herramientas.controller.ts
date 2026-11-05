@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { CreateActividadHerramientaUseCase } from '../../../application/use-cases/create-actividad-herramienta.use-case';
 import { GetActividadHerramientaUseCase } from '../../../application/use-cases/get-actividad-herramienta.use-case';
@@ -18,6 +19,8 @@ import { SaveActividadHerramientaDto } from '../dto/save-actividad-herramienta.d
 
 @Controller('actividades-herramientas')
 export class ActividadesHerramientasController {
+  private readonly logger = new Logger(ActividadesHerramientasController.name);
+
   constructor(
     private readonly createUseCase: CreateActividadHerramientaUseCase,
     private readonly getUseCase: GetActividadHerramientaUseCase,
@@ -27,8 +30,19 @@ export class ActividadesHerramientasController {
 
   @Post()
   async create(@Body() dto: CreateActividadHerramientaDto) {
-    const result = await this.createUseCase.execute(dto);
-    return result.toPrimitives();
+    this.logger.log(`Creando herramienta: ${JSON.stringify(dto)}`);
+    try {
+      const result = await this.createUseCase.execute(dto);
+      this.logger.log(
+        `Herramienta creada exitosamente con ID: ${result.toPrimitives().id_actividad_herramienta}`,
+      );
+      return result.toPrimitives();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Error al crear herramienta: ${message}`, stack);
+      throw error;
+    }
   }
 
   @Get()

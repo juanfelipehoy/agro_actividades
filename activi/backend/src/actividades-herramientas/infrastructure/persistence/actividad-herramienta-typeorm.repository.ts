@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -13,6 +13,10 @@ import { ActividadHerramientaOrmEntity } from './actividad-herramienta.orm-entit
 
 @Injectable()
 export class TypeOrmActividadHerramientaRepository implements ActividadHerramientaRepositoryPort {
+  private readonly logger = new Logger(
+    TypeOrmActividadHerramientaRepository.name,
+  );
+
   constructor(
     @InjectRepository(ActividadHerramientaOrmEntity)
     private readonly repository: Repository<ActividadHerramientaOrmEntity>,
@@ -21,24 +25,32 @@ export class TypeOrmActividadHerramientaRepository implements ActividadHerramien
   async create(
     herramienta: ActividadHerramientaDomain,
   ): Promise<ActividadHerramientaDomain> {
-    const entity = this.repository.create(
-      this.toPersistence(herramienta.toPrimitives()),
-    );
-    const saved = await this.repository.save(entity);
-    return this.toDomain(saved);
+    try {
+      const props = herramienta.toPrimitives();
+      this.logger?.log(
+        `Creating herramienta with props: ${JSON.stringify(props)}`,
+      );
+
+      const entity = this.repository.create(this.toPersistence(props));
+      const saved = await this.repository.save(entity);
+      this.logger?.log(`Herramienta saved with ID: ${saved.id_herramienta}`);
+      return this.toDomain(saved);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.logger?.error(`Error in repository create: ${message}`, stack);
+      throw error;
+    }
   }
 
   async findAll(): Promise<ActividadHerramientaDomain[]> {
-    const entities = await this.repository.find({
-      relations: { actividad: true },
-    });
+    const entities = await this.repository.find();
     return entities.map((e) => this.toDomain(e));
   }
 
   async findById(id: number): Promise<ActividadHerramientaDomain | null> {
     const entity = await this.repository.findOne({
       where: { id_herramienta: id },
-      relations: { actividad: true },
     });
     return entity ? this.toDomain(entity) : null;
   }
@@ -69,9 +81,6 @@ export class TypeOrmActividadHerramientaRepository implements ActividadHerramien
       id_actividad: props.id_actividad,
       nombre_herramienta: props.nombre_herramienta,
       cantidad: props.cantidad,
-      unidad_medida: props.unidad_medida,
-      estado_uso: props.estado_uso,
-      observaciones: props.observaciones,
     };
   }
 
@@ -83,9 +92,6 @@ export class TypeOrmActividadHerramientaRepository implements ActividadHerramien
       id_actividad: entity.id_actividad,
       nombre_herramienta: entity.nombre_herramienta,
       cantidad: entity.cantidad,
-      unidad_medida: entity.unidad_medida,
-      estado_uso: entity.estado_uso,
-      observaciones: entity.observaciones,
     });
   }
 }

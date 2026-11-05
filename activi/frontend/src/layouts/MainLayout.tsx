@@ -1,12 +1,13 @@
 import { Outlet, useLocation, Link } from 'react-router-dom';
+import BarraLateral from '../components/BarraLateral';
 
-interface NavItem {
+interface ModuleItem {
   path: string;
   label: string;
   icon: React.ReactNode;
 }
 
-const navItems: NavItem[] = [
+const moduleItems: ModuleItem[] = [
   {
     path: '/actividades',
     label: 'Actividades',
@@ -34,71 +35,64 @@ const navItems: NavItem[] = [
       </svg>
     ),
   },
+  {
+    path: '/herramientas',
+    label: 'Herramientas',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    ),
+  },
+  {
+    path: '/responsables',
+    label: 'Responsables',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+      </svg>
+    ),
+  },
+  {
+    path: '/servicios',
+    label: 'Servicios',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+      </svg>
+    ),
+  },
 ];
 
 const MainLayout = () => {
   const location = useLocation();
 
+  // Verificar si estamos en la sección de actividades o sus sub-rutas
+  const isActividadesSection = location.pathname === '/actividades' ||
+    location.pathname === '/historial' ||
+    location.pathname === '/evidencias' ||
+    location.pathname === '/herramientas' ||
+    location.pathname === '/responsables' ||
+    location.pathname === '/servicios';
+
+  const pageTitle = isActividadesSection
+    ? moduleItems.find(n => location.pathname === n.path)?.label || 'Actividades'
+    : 'AGROSOFT';
+
   return (
     <div className="min-h-screen flex bg-[#f8faf9]">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-emerald-100 flex flex-col fixed h-full">
-        {/* Logo */}
-        <div className="px-6 py-6 border-b border-emerald-50">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center shadow-md">
-              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-              </svg>
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-emerald-900 tracking-tight">AgroSoft</h1>
-              <p className="text-[11px] text-emerald-500 font-medium">Gestion Agricola</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 px-4 py-6 space-y-1">
-          <p className="px-4 text-[10px] font-semibold text-emerald-400 uppercase tracking-widest mb-3">Modulos</p>
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.path || 
-              (item.path === '/actividades' && location.pathname === '/');
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`sidebar-link ${isActive ? 'sidebar-link-active' : 'sidebar-link-inactive'}`}
-              >
-                {item.icon}
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-emerald-50">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
-              <span className="text-sm font-semibold text-emerald-600">U</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-700 truncate">Usuario</p>
-              <p className="text-xs text-gray-400 truncate">Administrador</p>
-            </div>
-          </div>
-        </div>
-      </aside>
+      {/* Barra Lateral Principal */}
+      <BarraLateral />
 
       {/* Main Content */}
-      <main className="flex-1 ml-64">
+      <main className="flex-1 ml-[270px]">
         {/* Top Bar */}
-        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-emerald-50 px-8 py-4">
-          <div className="flex items-center justify-between">
+        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-emerald-50 px-8 py-0">
+          <div className="flex items-center justify-between h-12">
             <div>
               <h2 className="text-lg font-semibold text-gray-800">
-                {navItems.find(n => location.pathname === n.path || (n.path === '/actividades' && location.pathname === '/'))?.label || 'Actividades'}
+                {pageTitle}
               </h2>
             </div>
             <div className="flex items-center gap-3">
@@ -106,7 +100,7 @@ const MainLayout = () => {
                 <input
                   type="text"
                   placeholder="Buscar..."
-                  className="w-64 pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/20 focus:border-emerald-300 transition-all"
+                  className="w-64 pl-10 pr-4 py-1.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/20 focus:border-emerald-300 transition-all"
                 />
                 <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -122,8 +116,33 @@ const MainLayout = () => {
           </div>
         </header>
 
+        {/* Horizontal Modules Bar - Solo visible en sección de actividades */}
+        {isActividadesSection && (
+          <div className="bg-white border-b border-emerald-100 px-8 py-0">
+            <div className="flex items-center gap-2 overflow-x-auto h-10">
+              {moduleItems.map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`flex items-center gap-2 px-4 py-1.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
+                      isActive
+                        ? 'bg-emerald-500 text-white shadow-md'
+                        : 'bg-gray-50 text-gray-600 hover:bg-emerald-50 hover:text-emerald-600'
+                    }`}
+                  >
+                    {item.icon}
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Page Content */}
-        <div className="p-8">
+        <div className="p-0">
           <Outlet />
         </div>
       </main>

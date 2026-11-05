@@ -116,7 +116,7 @@ Verás dos terminales abiertas simultáneamente, una para el backend y otra para
 ## 🛑 Cómo Detener el Proyecto
 
 ### Para detener el backend y frontend:
-- Presiona `Ctrl + C` en la terminal donde ejecutaste `npm run dev`
+- Presiona `Ctrl + C` en la terminal donde ejecutaste `npm run dev
 
 ### Para detener la base de datos:
 ```bash
@@ -151,12 +151,13 @@ npm run dev:frontend
 | `npm run dev:frontend` | Inicia solo el frontend |
 | `npm run docker:up` | Inicia PostgreSQL con Docker |
 | `npm run docker:down` | Detiene PostgreSQL con Docker |
+o simplemente vas e inicias docker manualmente y el sistema lo correra normalmente 
 | `npm run build` | Compila ambos proyectos |
 | `npm run lint` | Ejecuta ESLint en ambos proyectos |
 
 ---
 
-## 🛠️ Tecnologías
+## Tecnologías
 
 ### Backend
 - **NestJS** v11.0.1 - Framework de Node.js
@@ -186,13 +187,7 @@ failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine
 **Solución:**
 1. Abre Docker Desktop en tu computadora
 2. Espera a que esté completamente iniciado (icono verde en la barra de tareas)
-3. Vuelve a ejecutar `npm run docker:up`
-
-### Error de conexión a la base de datos
-
-**Error típico:**
-```
-Connection refused or Cannot connect to database
+3. Vuelve a ejecutar `npm run docker:up
 ```
 
 **Solución:**

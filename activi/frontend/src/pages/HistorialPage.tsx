@@ -46,7 +46,7 @@ const HistorialPage = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Historial</h1>
