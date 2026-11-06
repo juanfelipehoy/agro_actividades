@@ -15,8 +15,8 @@ export class ActividadServicioOrmEntity {
   @JoinColumn({ name: 'id_actividad' })
   actividad!: any;
 
-  @Column()
-  id_actividad!: number;
+  @Column({ nullable: true })
+  id_actividad?: number;
 
   @Column()
   nombre_servicio!: string;

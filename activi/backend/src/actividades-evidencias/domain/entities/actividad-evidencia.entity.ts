@@ -1,6 +1,6 @@
 export interface ActividadEvidenciaProps {
   id_actividad_evidencia?: number;
-  id_actividad: number;
+  id_actividad?: number;
   tipo_evidencia: string;
   archivo_url: string;
   descripcion?: string;

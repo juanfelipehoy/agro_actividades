@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import HerramientaForm from '../components/HerramientaForm';
 import Pagination from '../components/Pagination';
+import ActividadBadge from '../components/ActividadBadge';
 import { ActividadHerramienta } from '../services/api';
 import {
   useHerramientas,
@@ -16,7 +17,7 @@ const HerramientasPage = () => {
   const [editingItem, setEditingItem] = useState<ActividadHerramienta | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const { data, isLoading, isError } = useHerramientas(page, 15);
+  const { data, isLoading, isError } = useHerramientas(page, 12);
   const crearHerramienta = useCrearHerramienta();
   const actualizarHerramienta = useActualizarHerramienta();
   const eliminarHerramienta = useEliminarHerramienta();
@@ -98,55 +99,68 @@ const HerramientasPage = () => {
         />
       )}
 
-      <div className="bg-white rounded-2xl border border-emerald-100/60 overflow-hidden">
-        {herramientas.length === 0 ? (
-          <p className="text-center text-gray-400 py-10">No hay herramientas registradas.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-emerald-50/50">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Actividad</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Herramienta</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Cantidad</th>
-                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {herramientas.map((h) => (
-                  <tr key={h.id_actividad_herramienta} className="hover:bg-emerald-50/30 transition-colors">
-                    <td className="px-6 py-4 text-sm text-gray-600">#{h.id_actividad}</td>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-800">{h.nombre_herramienta}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{h.cantidad ?? '-'}</td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => { setEditingItem(h); setShowForm(true); }}
-                          className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                          title="Editar"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleDelete(h.id_actividad_herramienta!)}
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Eliminar"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {herramientas.length === 0 ? (
+        <div className="text-center py-16 bg-white rounded-2xl border border-emerald-100/60">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
           </div>
-        )}
-      </div>
+          <h3 className="text-lg font-semibold text-gray-700 mb-1">No hay herramientas</h3>
+          <p className="text-sm text-gray-400">Registra la primera herramienta utilizada en una actividad</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {herramientas.map((h) => (
+            <article
+              key={h.id_actividad_herramienta}
+              className="rounded-2xl border border-emerald-100/60 bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-100/40"
+            >
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="truncate font-semibold text-gray-800">{h.nombre_herramienta}</h3>
+                    <p className="mt-0.5 text-xs text-gray-500">
+                      Cantidad: {h.cantidad ?? '—'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {h.id_actividad != null && (
+                <div className="mb-4 flex flex-wrap items-center gap-2 border-t border-gray-50 pt-3">
+                  <ActividadBadge idActividad={h.id_actividad} />
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setEditingItem(h); setShowForm(true); }}
+                  className="btn-secondary flex-1"
+                >
+                  Editar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(h.id_actividad_herramienta!)}
+                  className="rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-100"
+                  aria-label={`Eliminar ${h.nombre_herramienta}`}
+                >
+                  Eliminar
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
 
       <Pagination
         page={page}

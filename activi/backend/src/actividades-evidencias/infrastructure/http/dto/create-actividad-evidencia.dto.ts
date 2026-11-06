@@ -6,8 +6,8 @@ export class CreateActividadEvidenciaDto {
   // por lo que se convierte a number antes de validar (@IsInt).
   @Type(() => Number)
   @IsInt()
-  @IsNotEmpty()
-  id_actividad!: number;
+  @IsOptional()
+  id_actividad?: number;
 
   @IsString()
   @IsNotEmpty()

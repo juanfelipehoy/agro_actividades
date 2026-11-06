@@ -1,36 +1,37 @@
-import { useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { ActividadHerramienta } from '../services/api';
-import ActividadSelect from './ActividadSelect';
 
 interface HerramientaFormProps {
   initialData?: ActividadHerramienta;
-  onSubmit: (data: Partial<ActividadHerramienta>) => void;
+  onSubmit: (data: Partial<ActividadHerramienta>) => Promise<void> | void;
   onCancel: () => void;
 }
 
 const HerramientaForm = ({ initialData, onSubmit, onCancel }: HerramientaFormProps) => {
-  const [formData, setFormData] = useState<Partial<ActividadHerramienta>>({
-    id_actividad: initialData?.id_actividad,
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
     nombre_herramienta: initialData?.nombre_herramienta || '',
-    cantidad: initialData?.cantidad,
+    cantidad: initialData?.cantidad ?? '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!formData.id_actividad || !formData.nombre_herramienta) return;
-    onSubmit({
-      ...formData,
-      cantidad: formData.cantidad ?? null,
-    } as Partial<ActividadHerramienta>);
+    if (!formData.nombre_herramienta.trim()) return;
+
+    try {
+      setSubmitting(true);
+      await onSubmit({
+        nombre_herramienta: formData.nombre_herramienta.trim(),
+        cantidad: formData.cantidad === '' ? null : Number(formData.cantidad),
+      } as Partial<ActividadHerramienta>);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    if (name === 'id_actividad') {
-      setFormData((prev) => ({ ...prev, [name]: Number(value) }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: type === 'number' ? Number(value) : value }));
-    }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   return (
@@ -40,7 +41,7 @@ const HerramientaForm = ({ initialData, onSubmit, onCancel }: HerramientaFormPro
           <h2 className="text-lg font-bold text-gray-800">
             {initialData ? 'Editar Herramienta' : 'Nueva Herramienta'}
           </h2>
-          <button onClick={onCancel} className="text-gray-400 hover:text-gray-600 transition-colors">
+          <button type="button" onClick={onCancel} className="text-gray-400 hover:text-gray-600 transition-colors">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -48,13 +49,6 @@ const HerramientaForm = ({ initialData, onSubmit, onCancel }: HerramientaFormPro
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <ActividadSelect
-            value={formData.id_actividad ? String(formData.id_actividad) : ''}
-            onChange={(value) =>
-              setFormData((prev) => ({ ...prev, id_actividad: Number(value) }))
-            }
-          />
-
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
             <input
@@ -65,6 +59,7 @@ const HerramientaForm = ({ initialData, onSubmit, onCancel }: HerramientaFormPro
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
               placeholder="Ej:azada, rastrillo, manguera"
               required
+              autoFocus
             />
           </div>
 
@@ -73,7 +68,7 @@ const HerramientaForm = ({ initialData, onSubmit, onCancel }: HerramientaFormPro
             <input
               type="number"
               name="cantidad"
-              value={formData.cantidad ?? ''}
+              value={formData.cantidad}
               onChange={handleChange}
               min="1"
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
@@ -82,11 +77,11 @@ const HerramientaForm = ({ initialData, onSubmit, onCancel }: HerramientaFormPro
           </div>
 
           <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onCancel} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-gray-600 font-medium hover:bg-gray-50 transition-colors">
+            <button type="button" onClick={onCancel} disabled={submitting} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-gray-600 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50">
               Cancelar
             </button>
-            <button type="submit" className="flex-1 py-2.5 btn-primary">
-              {initialData ? 'Actualizar' : 'Crear'}
+            <button type="submit" disabled={submitting} className="flex-1 py-2.5 btn-primary disabled:opacity-60 disabled:cursor-not-allowed">
+              {submitting ? 'Guardando...' : initialData ? 'Actualizar' : 'Crear'}
             </button>
           </div>
         </form>

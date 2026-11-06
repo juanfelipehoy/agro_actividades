@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import ResponsableForm from '../components/ResponsableForm';
 import Pagination from '../components/Pagination';
+import ActividadBadge from '../components/ActividadBadge';
 import { ActividadResponsable } from '../services/api';
 import {
   useResponsables,
@@ -10,11 +11,11 @@ import {
 } from '../hooks/useRecursos';
 import { getErrorMessage } from '../utils/errors';
 
-const ESTADOS_ASIGNACION: Record<string, string> = {
-  asignado: 'Asignado',
-  activo: 'Activo',
-  inactivo: 'Inactivo',
-  finalizado: 'Finalizado',
+const ESTADOS_ASIGNACION: Record<string, { label: string; className: string }> = {
+  asignado: { label: 'Asignado', className: 'bg-blue-50 text-blue-700 border-blue-200' },
+  activo: { label: 'Activo', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  inactivo: { label: 'Inactivo', className: 'bg-gray-50 text-gray-600 border-gray-200' },
+  finalizado: { label: 'Finalizado', className: 'bg-amber-50 text-amber-700 border-amber-200' },
 };
 
 const ResponsablesPage = () => {
@@ -23,7 +24,7 @@ const ResponsablesPage = () => {
   const [editingItem, setEditingItem] = useState<ActividadResponsable | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const { data, isLoading, isError } = useResponsables(page, 15);
+  const { data, isLoading, isError } = useResponsables(page, 12);
   const crearResponsable = useCrearResponsable();
   const actualizarResponsable = useActualizarResponsable();
   const eliminarResponsable = useEliminarResponsable();
@@ -105,61 +106,73 @@ const ResponsablesPage = () => {
         />
       )}
 
-      <div className="bg-white rounded-2xl border border-emerald-100/60 overflow-hidden">
-        {responsables.length === 0 ? (
-          <p className="text-center text-gray-400 py-10">No hay responsables registrados.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-emerald-50/50">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Actividad</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Nombre</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Rol</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Estado</th>
-                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {responsables.map((r) => (
-                  <tr key={r.id_actividad_responsable} className="hover:bg-emerald-50/30 transition-colors">
-                    <td className="px-6 py-4 text-sm text-gray-600">#{r.id_actividad}</td>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-800">{r.nombre_responsable}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{r.rol ?? '-'}</td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
-                        {ESTADOS_ASIGNACION[r.estado_asignacion ?? ''] ?? r.estado_asignacion ?? '-'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => { setEditingItem(r); setShowForm(true); }}
-                          className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                          title="Editar"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleDelete(r.id_actividad_responsable!)}
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Eliminar"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {responsables.length === 0 ? (
+        <div className="text-center py-16 bg-white rounded-2xl border border-emerald-100/60">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
           </div>
-        )}
-      </div>
+          <h3 className="text-lg font-semibold text-gray-700 mb-1">No hay responsables</h3>
+          <p className="text-sm text-gray-400">Asigna la primera persona responsable de una actividad</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {responsables.map((r) => {
+            const estadoInfo = ESTADOS_ASIGNACION[r.estado_asignacion ?? ''] ?? {
+              label: r.estado_asignacion ?? 'Sin estado',
+              className: 'bg-gray-50 text-gray-600 border-gray-200',
+            };
+            return (
+              <article
+                key={r.id_actividad_responsable}
+                className="rounded-2xl border border-emerald-100/60 bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-100/40"
+              >
+                <div className="mb-4 flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="truncate font-semibold text-gray-800">{r.nombre_responsable}</h3>
+                      <p className="mt-0.5 text-xs text-gray-500">{r.rol || 'Sin rol asignado'}</p>
+                    </div>
+                  </div>
+                  <span className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium ${estadoInfo.className}`}>
+                    {estadoInfo.label}
+                  </span>
+                </div>
+
+                {r.id_actividad != null && (
+                  <div className="mb-4 flex flex-wrap items-center gap-2 border-t border-gray-50 pt-3">
+                    <ActividadBadge idActividad={r.id_actividad} />
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setEditingItem(r); setShowForm(true); }}
+                    className="btn-secondary flex-1"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(r.id_actividad_responsable!)}
+                    className="rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-100"
+                    aria-label={`Eliminar ${r.nombre_responsable}`}
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
 
       <Pagination
         page={page}

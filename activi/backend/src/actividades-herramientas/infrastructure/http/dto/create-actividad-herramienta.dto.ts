@@ -8,8 +8,8 @@ import {
 
 export class CreateActividadHerramientaDto {
   @IsInt()
-  @IsNotEmpty()
-  id_actividad!: number;
+  @IsOptional()
+  id_actividad?: number;
 
   @IsString()
   @IsNotEmpty()

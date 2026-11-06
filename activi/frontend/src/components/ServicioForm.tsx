@@ -1,41 +1,41 @@
-import { useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { ActividadServicio } from '../services/api';
-import ActividadSelect from './ActividadSelect';
 
 interface ServicioFormProps {
   initialData?: ActividadServicio;
-  onSubmit: (data: Partial<ActividadServicio>) => void;
+  onSubmit: (data: Partial<ActividadServicio>) => Promise<void> | void;
   onCancel: () => void;
 }
 
 const ServicioForm = ({ initialData, onSubmit, onCancel }: ServicioFormProps) => {
-  const [formData, setFormData] = useState<Partial<ActividadServicio>>({
-    id_actividad: initialData?.id_actividad,
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
     nombre_servicio: initialData?.nombre_servicio || '',
     descripcion: initialData?.descripcion || '',
-    costo: initialData?.costo,
+    costo: initialData?.costo ?? '',
     proveedor: initialData?.proveedor || '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!formData.id_actividad || !formData.nombre_servicio) return;
-    onSubmit({
-      ...formData,
-      descripcion: formData.descripcion || null,
-      proveedor: formData.proveedor || null,
-    } as Partial<ActividadServicio>);
+    if (!formData.nombre_servicio.trim()) return;
+
+    try {
+      setSubmitting(true);
+      await onSubmit({
+        nombre_servicio: formData.nombre_servicio.trim(),
+        descripcion: formData.descripcion.trim() || null,
+        costo: formData.costo === '' ? null : Number(formData.costo),
+        proveedor: formData.proveedor.trim() || null,
+      } as Partial<ActividadServicio>);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    if (name === 'id_actividad') {
-      setFormData((prev) => ({ ...prev, [name]: Number(value) }));
-    } else if (type === 'number') {
-      setFormData((prev) => ({ ...prev, [name]: value === '' ? undefined : Number(value) }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   return (
@@ -45,7 +45,7 @@ const ServicioForm = ({ initialData, onSubmit, onCancel }: ServicioFormProps) =>
           <h2 className="text-lg font-bold text-gray-800">
             {initialData ? 'Editar Servicio' : 'Nuevo Servicio'}
           </h2>
-          <button onClick={onCancel} className="text-gray-400 hover:text-gray-600 transition-colors">
+          <button type="button" onClick={onCancel} className="text-gray-400 hover:text-gray-600 transition-colors">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -53,13 +53,6 @@ const ServicioForm = ({ initialData, onSubmit, onCancel }: ServicioFormProps) =>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <ActividadSelect
-            value={formData.id_actividad ? String(formData.id_actividad) : ''}
-            onChange={(value) =>
-              setFormData((prev) => ({ ...prev, id_actividad: Number(value) }))
-            }
-          />
-
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del servicio *</label>
             <input
@@ -70,6 +63,7 @@ const ServicioForm = ({ initialData, onSubmit, onCancel }: ServicioFormProps) =>
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
               placeholder="Ej: fumigación, fertilización"
               required
+              autoFocus
             />
           </div>
 
@@ -77,7 +71,7 @@ const ServicioForm = ({ initialData, onSubmit, onCancel }: ServicioFormProps) =>
             <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
             <textarea
               name="descripcion"
-              value={formData.descripcion || ''}
+              value={formData.descripcion}
               onChange={handleChange}
               rows={2}
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all resize-none"
@@ -90,7 +84,7 @@ const ServicioForm = ({ initialData, onSubmit, onCancel }: ServicioFormProps) =>
             <input
               type="number"
               name="costo"
-              value={formData.costo ?? ''}
+              value={formData.costo}
               onChange={handleChange}
               min="0"
               step="0.01"
@@ -104,7 +98,7 @@ const ServicioForm = ({ initialData, onSubmit, onCancel }: ServicioFormProps) =>
             <input
               type="text"
               name="proveedor"
-              value={formData.proveedor || ''}
+              value={formData.proveedor}
               onChange={handleChange}
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
               placeholder="Nombre del proveedor"
@@ -112,11 +106,11 @@ const ServicioForm = ({ initialData, onSubmit, onCancel }: ServicioFormProps) =>
           </div>
 
           <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onCancel} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-gray-600 font-medium hover:bg-gray-50 transition-colors">
+            <button type="button" onClick={onCancel} disabled={submitting} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-gray-600 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50">
               Cancelar
             </button>
-            <button type="submit" className="flex-1 py-2.5 btn-primary">
-              {initialData ? 'Actualizar' : 'Crear'}
+            <button type="submit" disabled={submitting} className="flex-1 py-2.5 btn-primary disabled:opacity-60 disabled:cursor-not-allowed">
+              {submitting ? 'Guardando...' : initialData ? 'Actualizar' : 'Crear'}
             </button>
           </div>
         </form>

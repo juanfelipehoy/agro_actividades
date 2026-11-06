@@ -108,7 +108,7 @@ export class TypeOrmActividadResponsableRepository implements ActividadResponsab
   ): ActividadResponsableDomain {
     return ActividadResponsableDomain.fromPersistence({
       id_actividad_responsable: entity.id_responsable,
-      id_actividad: entity.id_actividad,
+      id_actividad: entity.id_actividad ?? undefined,
       nombre_responsable: entity.nombre_responsable,
       id_usuario: entity.id_usuario,
       rol: entity.rol,

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import EvidenciaForm from '../components/EvidenciaForm';
 import Pagination from '../components/Pagination';
+import ActividadBadge from '../components/ActividadBadge';
 import { API_URL } from '../services/api';
 import { useEvidencias, useCrearEvidencia, useEliminarEvidencia } from '../hooks/useEvidencias';
 import { getErrorMessage } from '../utils/errors';
@@ -106,7 +107,7 @@ const EvidenciasPage = () => {
               </a>
               <div className="p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-medium text-gray-700">Actividad #{evidencia.id_actividad}</p>
+                  {evidencia.id_actividad != null && <ActividadBadge idActividad={evidencia.id_actividad} />}
                   <span className="text-xs text-gray-400">{evidencia.fecha_registro ? new Date(evidencia.fecha_registro).toLocaleDateString('es-ES') : ''}</span>
                 </div>
                 {evidencia.descripcion && <p className="mt-1 text-xs text-gray-400">{evidencia.descripcion}</p>}

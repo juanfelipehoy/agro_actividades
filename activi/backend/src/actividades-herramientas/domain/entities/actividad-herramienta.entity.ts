@@ -1,6 +1,6 @@
 export interface ActividadHerramientaProps {
   id_actividad_herramienta?: number;
-  id_actividad: number;
+  id_actividad?: number;
   nombre_herramienta: string;
   cantidad?: number;
 }

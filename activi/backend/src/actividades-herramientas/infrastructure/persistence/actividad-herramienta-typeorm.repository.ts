@@ -104,7 +104,7 @@ export class TypeOrmActividadHerramientaRepository implements ActividadHerramien
   ): ActividadHerramientaDomain {
     return ActividadHerramientaDomain.fromPersistence({
       id_actividad_herramienta: entity.id_actividad_herramienta,
-      id_actividad: entity.id_actividad,
+      id_actividad: entity.id_actividad ?? undefined,
       nombre_herramienta: entity.nombre_herramienta,
       cantidad: entity.cantidad,
     });

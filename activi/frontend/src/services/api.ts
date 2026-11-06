@@ -118,7 +118,7 @@ export interface ActividadHistorial {
 
 export interface ActividadEvidencia {
   id_actividad_evidencia?: number;
-  id_actividad: number;
+  id_actividad?: number;
   tipo_evidencia: string;
   archivo_url: string;
   descripcion?: string;
@@ -128,14 +128,14 @@ export interface ActividadEvidencia {
 
 export interface ActividadHerramienta {
   id_actividad_herramienta?: number;
-  id_actividad: number;
+  id_actividad?: number;
   nombre_herramienta: string;
   cantidad?: number;
 }
 
 export interface ActividadResponsable {
   id_actividad_responsable?: number;
-  id_actividad: number;
+  id_actividad?: number;
   nombre_responsable: string;
   rol?: string;
   estado_asignacion?: string;
@@ -144,7 +144,7 @@ export interface ActividadResponsable {
 
 export interface ActividadServicio {
   id_actividad_servicio?: number;
-  id_actividad: number;
+  id_actividad?: number;
   nombre_servicio: string;
   descripcion?: string;
   costo?: number;

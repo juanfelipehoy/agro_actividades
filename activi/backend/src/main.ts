@@ -27,8 +27,12 @@ async function bootstrap() {
     .map((origin) => origin.trim())
     .filter(Boolean);
 
+  // En desarrollo se refleja cualquier origen (previews, túneles, etc.).
+  // En producción solo se permiten los orígenes de CORS_ORIGIN.
+  const isProduction = process.env.NODE_ENV === 'production';
+
   app.enableCors({
-    origin: corsOrigins,
+    origin: isProduction ? corsOrigins : true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });

@@ -106,7 +106,7 @@ export class TypeOrmActividadServicioRepository implements ActividadServicioRepo
   ): ActividadServicioDomain {
     return ActividadServicioDomain.fromPersistence({
       id_actividad_servicio: entity.id_servicio,
-      id_actividad: entity.id_actividad,
+      id_actividad: entity.id_actividad ?? undefined,
       nombre_servicio: entity.nombre_servicio,
       descripcion: entity.descripcion,
       costo: entity.costo,

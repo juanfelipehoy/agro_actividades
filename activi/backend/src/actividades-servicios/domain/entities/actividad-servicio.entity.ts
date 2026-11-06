@@ -1,6 +1,6 @@
 export interface ActividadServicioProps {
   id_actividad_servicio?: number;
-  id_actividad: number;
+  id_actividad?: number;
   nombre_servicio: string;
   descripcion?: string;
   costo?: number;

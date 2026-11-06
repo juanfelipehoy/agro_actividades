@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Pagination from '../components/Pagination';
 import { useHistorial } from '../hooks/useHistorial';
+import ActividadBadge from '../components/ActividadBadge';
 
 const HistorialPage = () => {
   const [page, setPage] = useState(1);
@@ -80,7 +81,7 @@ const HistorialPage = () => {
                         {item.accion.replace('_', ' ')}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-700 font-medium">#{item.id_actividad}</td>
+                    <td className="px-6 py-4"><ActividadBadge idActividad={item.id_actividad} /></td>
                     <td className="px-6 py-4 text-sm text-gray-500">
                       {item.estado_anterior && (
                         <span className="text-red-500">{item.estado_anterior.replace('_', ' ')}</span>

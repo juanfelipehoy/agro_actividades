@@ -2,8 +2,8 @@ import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateActividadResponsableDto {
   @IsInt()
-  @IsNotEmpty()
-  id_actividad!: number;
+  @IsOptional()
+  id_actividad?: number;
 
   @IsString()
   @IsNotEmpty()

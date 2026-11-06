@@ -105,7 +105,7 @@ export class TypeOrmActividadEvidenciaRepository implements ActividadEvidenciaRe
   ): ActividadEvidenciaDomain {
     return ActividadEvidenciaDomain.fromPersistence({
       id_actividad_evidencia: entity.id_actividad_evidencia,
-      id_actividad: entity.id_actividad,
+      id_actividad: entity.id_actividad ?? undefined,
       tipo_evidencia: entity.tipo_evidencia,
       archivo_url: entity.archivo_url,
       descripcion: entity.descripcion,
