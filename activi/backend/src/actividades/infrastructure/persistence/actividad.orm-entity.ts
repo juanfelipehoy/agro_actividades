@@ -6,6 +6,11 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import type { ActividadResponsableOrmEntity } from '../../../actividades-responsables/infrastructure/persistence/actividad-responsable.orm-entity';
+import type { ActividadEvidenciaOrmEntity } from '../../../actividades-evidencias/infrastructure/persistence/actividad-evidencia.orm-entity';
+import type { ActividadServicioOrmEntity } from '../../../actividades-servicios/infrastructure/persistence/actividad-servicio.orm-entity';
+import type { ActividadHerramientaOrmEntity } from '../../../actividades-herramientas/infrastructure/persistence/actividad-herramienta.orm-entity';
+import type { ActividadHistorialOrmEntity } from '../../../actividad-historial/infrastructure/persistence/actividad-historial.orm-entity';
 
 @Entity('actividades')
 export class ActividadOrmEntity {
@@ -43,17 +48,17 @@ export class ActividadOrmEntity {
   fecha_actualizacion!: Date;
 
   @OneToMany('ActividadResponsableOrmEntity', 'actividad')
-  responsables!: any[];
+  responsables!: ActividadResponsableOrmEntity[];
 
   @OneToMany('ActividadEvidenciaOrmEntity', 'actividad')
-  evidencias!: any[];
+  evidencias!: ActividadEvidenciaOrmEntity[];
 
   @OneToMany('ActividadServicioOrmEntity', 'actividad')
-  servicios!: any[];
+  servicios!: ActividadServicioOrmEntity[];
 
   @OneToMany('ActividadHerramientaOrmEntity', 'actividad')
-  herramientas!: any[];
+  herramientas!: ActividadHerramientaOrmEntity[];
 
   @OneToMany('ActividadHistorialOrmEntity', 'actividad')
-  historial!: any[];
+  historial!: ActividadHistorialOrmEntity[];
 }
